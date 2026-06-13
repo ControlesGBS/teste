@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerenciar Usuários — GBS</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f4f6f4;color:#1a2a1a;font-size:13px}
+.hdr{background:#1a4a1a;color:#fff;padding:10px 24px;display:flex;align-items:center;gap:12px}
+.hdr-logo{width:28px;height:28px;background:#2d7a2d;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#c8e8c8;flex-shrink:0}
+.hdr-title{font-size:15px;font-weight:500;color:#c8e8c8;flex:1}
+.hdr-back{background:none;border:0.5px solid #4a7a4a;color:#90c090;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:12px;text-decoration:none}
+.content{max-width:1000px;margin:0 auto;padding:24px 20px}
+.section{background:#fff;border:0.5px solid #c0dcc0;border-radius:10px;margin-bottom:20px;overflow:hidden}
+.section-hdr{background:#1a4a1a;color:#c0e8c0;padding:10px 16px;font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:space-between}
+.section-body{padding:16px}
+/* FORM NOVO USUÁRIO */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group label{font-size:10px;color:#4a7a4a;text-transform:uppercase;letter-spacing:.3px}
+.form-group input,.form-group select{border:0.5px solid #a0c8a0;border-radius:5px;padding:6px 10px;font-size:13px;background:#f8fbf8;color:#1a2a1a;height:32px}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:#2d7a2d}
+.form-full{grid-column:1/-1}
+.checkboxes{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.cb-item{display:flex;align-items:center;gap:6px;background:#f0f8f0;border:0.5px solid #a0c8a0;border-radius:5px;padding:5px 10px;cursor:pointer;font-size:12px;color:#1a4a1a}
+.cb-item input{accent-color:#2d7a2d;width:14px;height:14px;cursor:pointer}
+.btn-criar{background:#2d7a2d;color:#fff;border:none;border-radius:6px;padding:8px 20px;font-size:13px;font-weight:500;cursor:pointer;margin-top:12px}
+.btn-criar:hover{background:#1a5a1a}
+.btn-criar:disabled{background:#90c090;cursor:not-allowed}
+.msg-criar{font-size:12px;margin-top:8px;min-height:16px}
+.msg-criar.ok{color:#16a34a}
+.msg-criar.erro{color:#a32d2d}
+/* TABELA USUÁRIOS */
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{background:#1a4a1a;color:#c0e8c0;padding:7px 10px;text-align:left;font-size:11px;font-weight:500;white-space:nowrap}
+tbody tr:nth-child(even){background:#f8fbf8}
+tbody td{padding:7px 10px;border-bottom:0.5px solid #e0eee0;vertical-align:middle}
+.badge-perfil{display:inline-block;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:500}
+.bp-gestor{background:#eeedfe;color:#3c3489}
+.bp-supervisor{background:#e6f1fb;color:#0c447c}
+.bp-auxiliar{background:#faeeda;color:#633806}
+.badge-ativo{display:inline-block;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:500}
+.ba-sim{background:#eaf3de;color:#27500a}
+.ba-nao{background:#fcebeb;color:#791f1f}
+.btn-edit{background:none;border:0.5px solid #a0c8a0;border-radius:4px;padding:3px 10px;font-size:11px;cursor:pointer;color:#1a4a1a}
+.btn-edit:hover{background:#f0f8f0}
+.btn-toggle{background:none;border:0.5px solid #f09595;border-radius:4px;padding:3px 10px;font-size:11px;cursor:pointer;color:#a32d2d}
+.btn-toggle.ativar{border-color:#a0c8a0;color:#1a4a1a}
+/* MODAL EDIÇÃO */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.vis{opacity:1;pointer-events:all}
+.modal{background:#fff;border-radius:12px;padding:24px;width:480px;max-width:95vw;max-height:90vh;overflow-y:auto;position:relative}
+.modal-title{font-size:15px;font-weight:500;color:#1a2a1a;margin-bottom:16px}
+.modal-close{position:absolute;top:12px;right:14px;background:none;border:none;font-size:20px;color:#4a7a4a;cursor:pointer}
+.btn-salvar{background:#2d7a2d;color:#fff;border:none;border-radius:6px;padding:8px 20px;font-size:13px;font-weight:500;cursor:pointer;margin-top:12px}
+.btn-salvar:disabled{background:#90c090;cursor:not-allowed}
+.msg-edit{font-size:12px;margin-top:8px;min-height:16px}
+.msg-edit.ok{color:#16a34a}
+.msg-edit.erro{color:#a32d2d}
+.status-msg{padding:16px;text-align:center;color:#4a7a4a}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="hdr-logo">GBS</div>
+  <div class="hdr-title">Gerenciar Usuários</div>
+  <a class="hdr-back" href="index.html">← Portal</a>
+</div>
+
+<div class="content">
+  <!-- CRIAR USUÁRIO -->
+  <div class="section">
+    <div class="section-hdr">Criar novo usuário</div>
+    <div class="section-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nome completo</label>
+          <input type="text" id="n-nome" placeholder="Ex: João Silva">
+        </div>
+        <div class="form-group">
+          <label>E-mail</label>
+          <input type="email" id="n-email" placeholder="joao@gbsservicos.com">
+        </div>
+        <div class="form-group">
+          <label>Senha inicial</label>
+          <input type="password" id="n-senha" placeholder="mínimo 6 caracteres">
+        </div>
+        <div class="form-group">
+          <label>Perfil</label>
+          <select id="n-perfil" onchange="atualizarBase()">
+            <option value="supervisor">Supervisor</option>
+            <option value="auxiliar">Auxiliar</option>
+            <option value="gestor">Gestor</option>
+          </select>
+        </div>
+        <div class="form-group" id="grp-base">
+          <label>Base</label>
+          <select id="n-base">
+            <option value="">Todas (sem restrição)</option>
+            <option>ALFENAS</option>
+            <option>ANDRADAS</option>
+            <option>GUAXUPE</option>
+            <option>OURO FINO</option>
+            <option>PASSOS</option>
+            <option>POUSO ALEGRE</option>
+            <option>SSP</option>
+          </select>
+        </div>
+        <div class="form-group form-full">
+          <label>Relatórios permitidos</label>
+          <div class="checkboxes">
+            <label class="cb-item"><input type="checkbox" value="jornada" checked> Jornada</label>
+            <label class="cb-item"><input type="checkbox" value="impedimentos" checked> Impedimentos</label>
+            <label class="cb-item"><input type="checkbox" value="transmissoes" checked> Transmissões</label>
+            <label class="cb-item"><input type="checkbox" value="fotos" checked> Fotos</label>
+            <label class="cb-item"><input type="checkbox" value="erros" checked> Erros</label>
+          </div>
+        </div>
+      </div>
+      <button class="btn-criar" id="btn-criar" onclick="criarUsuario()">Criar usuário</button>
+      <div class="msg-criar" id="msg-criar"></div>
+    </div>
+  </div>
+
+  <!-- LISTA USUÁRIOS -->
+  <div class="section">
+    <div class="section-hdr">
+      <span>Usuários cadastrados</span>
+      <span id="count-users" style="font-size:11px;color:#90c090"></span>
+    </div>
+    <div class="section-body" style="padding:0">
+      <table>
+        <thead><tr>
+          <th>Nome</th>
+          <th>E-mail</th>
+          <th>Perfil</th>
+          <th>Base</th>
+          <th>Relatórios</th>
+          <th>Status</th>
+          <th>Ações</th>
+        </tr></thead>
+        <tbody id="tbody-users"><tr><td colspan="7" class="status-msg">Carregando...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDIÇÃO -->
+<div class="modal-overlay" id="modal-edit" onclick="fecharModalFora(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="fecharModal()">×</button>
+    <div class="modal-title">Editar usuário</div>
+    <input type="hidden" id="e-id">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Nome</label>
+        <input type="text" id="e-nome">
+      </div>
+      <div class="form-group">
+        <label>Perfil</label>
+        <select id="e-perfil" onchange="atualizarBaseEdit()">
+          <option value="supervisor">Supervisor</option>
+          <option value="auxiliar">Auxiliar</option>
+          <option value="gestor">Gestor</option>
+        </select>
+      </div>
+      <div class="form-group" id="e-grp-base">
+        <label>Base</label>
+        <select id="e-base">
+          <option value="">Todas (sem restrição)</option>
+          <option>ALFENAS</option>
+          <option>ANDRADAS</option>
+          <option>GUAXUPE</option>
+          <option>OURO FINO</option>
+          <option>PASSOS</option>
+          <option>POUSO ALEGRE</option>
+          <option>SSP</option>
+        </select>
+      </div>
+      <div class="form-group form-full">
+        <label>Nova senha (deixe em branco para não alterar)</label>
+        <input type="password" id="e-senha" placeholder="nova senha (opcional)">
+      </div>
+      <div class="form-group form-full">
+        <label>Relatórios permitidos</label>
+        <div class="checkboxes" id="e-relatorios">
+          <label class="cb-item"><input type="checkbox" value="jornada"> Jornada</label>
+          <label class="cb-item"><input type="checkbox" value="impedimentos"> Impedimentos</label>
+          <label class="cb-item"><input type="checkbox" value="transmissoes"> Transmissões</label>
+          <label class="cb-item"><input type="checkbox" value="fotos"> Fotos</label>
+          <label class="cb-item"><input type="checkbox" value="erros"> Erros</label>
+        </div>
+      </div>
+    </div>
+    <button class="btn-salvar" id="btn-salvar" onclick="salvarEdicao()">Salvar alterações</button>
+    <div class="msg-edit" id="msg-edit"></div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL='https://ndwivbhqglpnfyqwjbzu.supabase.co';
+const SUPABASE_KEY='sb_publishable_IhuNziyT5VYrMKRixcPGjA_LAn5ku-7';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+// Verificar acesso gestor
+(async()=>{
+  const {data:{user}}=await sb.auth.getUser();
+  if(!user){location.href='index.html';return;}
+  const {data:up}=await sb.from('usuarios_portal').select('perfil,ativo').eq('id',user.id).single();
+  if(!up||up.perfil!=='gestor'||!up.ativo){location.href='index.html';return;}
+  carregarUsuarios();
+})();
+
+function atualizarBase(){
+  const p=document.getElementById('n-perfil').value;
+  document.getElementById('grp-base').style.display=p==='gestor'?'none':'flex';
+}
+function atualizarBaseEdit(){
+  const p=document.getElementById('e-perfil').value;
+  document.getElementById('e-grp-base').style.display=p==='gestor'?'none':'flex';
+}
+
+async function carregarUsuarios(){
+  const {data}=await sb.from('usuarios_portal').select('*').order('nome');
+  document.getElementById('count-users').textContent=`${(data||[]).length} usuário(s)`;
+  const LABEL={gestor:'Gestor',supervisor:'Supervisor',auxiliar:'Auxiliar'};
+  const CLASSE={gestor:'bp-gestor',supervisor:'bp-supervisor',auxiliar:'bp-auxiliar'};
+  document.getElementById('tbody-users').innerHTML=(data||[]).map(u=>`
+    <tr>
+      <td><strong>${u.nome}</strong></td>
+      <td style="color:#4a7a4a">${u.email}</td>
+      <td><span class="badge-perfil ${CLASSE[u.perfil]||''}">${LABEL[u.perfil]||u.perfil}</span></td>
+      <td>${u.base||'Todas'}</td>
+      <td style="font-size:11px;color:#4a7a4a">${(u.relatorios||[]).join(', ')||'—'}</td>
+      <td><span class="badge-ativo ${u.ativo?'ba-sim':'ba-nao'}">${u.ativo?'Ativo':'Inativo'}</span></td>
+      <td style="display:flex;gap:6px;align-items:center">
+        <button class="btn-edit" onclick='abrirEdicao(${JSON.stringify(u)})'>Editar</button>
+        <button class="btn-toggle ${u.ativo?'':'ativar'}" onclick="toggleAtivo('${u.id}',${u.ativo})">${u.ativo?'Desativar':'Ativar'}</button>
+      </td>
+    </tr>`).join('');
+}
+
+async function criarUsuario(){
+  const nome=document.getElementById('n-nome').value.trim();
+  const email=document.getElementById('n-email').value.trim();
+  const senha=document.getElementById('n-senha').value;
+  const perfil=document.getElementById('n-perfil').value;
+  const base=document.getElementById('n-base').value||null;
+  const rels=[...document.querySelectorAll('.checkboxes input:checked')].map(c=>c.value);
+  const msg=document.getElementById('msg-criar');
+  const btn=document.getElementById('btn-criar');
+
+  if(!nome||!email||!senha){msg.className='msg-criar erro';msg.textContent='Preencha nome, e-mail e senha.';return;}
+  if(senha.length<6){msg.className='msg-criar erro';msg.textContent='Senha mínima de 6 caracteres.';return;}
+
+  btn.disabled=true;msg.textContent='Criando...';msg.className='msg-criar';
+
+  // Criar no Auth via Admin API usando service role — não disponível no client
+  // Usamos signup normal e confirmamos via SQL depois
+  const {data,error}=await sb.auth.admin.createUser({
+    email,password:senha,email_confirm:true,
+    user_metadata:{nome}
+  });
+
+  if(error){
+    // fallback: signUp normal
+    const {data:d2,error:e2}=await sb.auth.signUp({email,password:senha});
+    if(e2){msg.className='msg-criar erro';msg.textContent='Erro: '+e2.message;btn.disabled=false;return;}
+    if(!d2.user){msg.className='msg-criar erro';msg.textContent='Não foi possível criar o usuário.';btn.disabled=false;return;}
+    await sb.from('usuarios_portal').insert({id:d2.user.id,nome,email,perfil,base,relatorios:rels,ativo:true});
+  } else {
+    await sb.from('usuarios_portal').insert({id:data.user.id,nome,email,perfil,base,relatorios:rels,ativo:true});
+  }
+
+  msg.className='msg-criar ok';msg.textContent=`✓ Usuário ${nome} criado com sucesso!`;
+  document.getElementById('n-nome').value='';
+  document.getElementById('n-email').value='';
+  document.getElementById('n-senha').value='';
+  btn.disabled=false;
+  carregarUsuarios();
+}
+
+function abrirEdicao(u){
+  document.getElementById('e-id').value=u.id;
+  document.getElementById('e-nome').value=u.nome;
+  document.getElementById('e-perfil').value=u.perfil;
+  document.getElementById('e-base').value=u.base||'';
+  document.getElementById('e-senha').value='';
+  document.getElementById('msg-edit').textContent='';
+  atualizarBaseEdit();
+  const rels=u.relatorios||[];
+  document.querySelectorAll('#e-relatorios input').forEach(cb=>{
+    cb.checked=rels.includes(cb.value);
+  });
+  document.getElementById('modal-edit').classList.add('vis');
+}
+function fecharModal(){document.getElementById('modal-edit').classList.remove('vis');}
+function fecharModalFora(e){if(e.target===document.getElementById('modal-edit'))fecharModal();}
+
+async function salvarEdicao(){
+  const id=document.getElementById('e-id').value;
+  const nome=document.getElementById('e-nome').value.trim();
+  const perfil=document.getElementById('e-perfil').value;
+  const base=document.getElementById('e-base').value||null;
+  const senha=document.getElementById('e-senha').value;
+  const rels=[...document.querySelectorAll('#e-relatorios input:checked')].map(c=>c.value);
+  const msg=document.getElementById('msg-edit');
+  const btn=document.getElementById('btn-salvar');
+  if(!nome){msg.className='msg-edit erro';msg.textContent='Nome obrigatório.';return;}
+  btn.disabled=true;msg.textContent='Salvando...';msg.className='msg-edit';
+  const {error}=await sb.from('usuarios_portal').update({nome,perfil,base,relatorios:rels}).eq('id',id);
+  if(error){msg.className='msg-edit erro';msg.textContent='Erro ao salvar.';btn.disabled=false;return;}
+  msg.className='msg-edit ok';msg.textContent='✓ Salvo!';
+  btn.disabled=false;
+  carregarUsuarios();
+  setTimeout(fecharModal,800);
+}
+
+async function toggleAtivo(id,ativo){
+  await sb.from('usuarios_portal').update({ativo:!ativo}).eq('id',id);
+  carregarUsuarios();
+}
+</script>
+</body>
+</html>

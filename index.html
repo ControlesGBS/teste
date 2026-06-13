@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal GBS Serviços</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f4f6f4;color:#1a2a1a;min-height:100vh}
+/* HEADER */
+.hdr{background:#1a4a1a;padding:0 32px;display:flex;align-items:center;gap:16px;height:56px}
+.hdr-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.hdr-logo-box{width:32px;height:32px;background:#2d7a2d;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#c8e8c8}
+.hdr-logo-txt{font-size:15px;font-weight:500;color:#c8e8c8}
+.hdr-nav{display:flex;gap:4px;margin-left:24px;flex:1}
+.hdr-nav a{color:#90c090;font-size:13px;padding:6px 14px;border-radius:4px;text-decoration:none;transition:background .15s}
+.hdr-nav a:hover{background:#2d5a2d;color:#c8e8c8}
+.hdr-actions{display:flex;align-items:center;gap:10px}
+.btn-entrar{background:#2d7a2d;color:#fff;border:none;padding:8px 20px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s}
+.btn-entrar:hover{background:#1a5a1a}
+.btn-sair{background:none;border:1px solid #4a7a4a;color:#90c090;padding:6px 14px;border-radius:5px;font-size:12px;cursor:pointer}
+.hdr-user{font-size:12px;color:#90c090}
+/* HERO */
+.hero{padding:48px 32px 32px;max-width:900px}
+.hero-tag{font-size:11px;font-weight:500;color:#2d7a2d;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.hero-title{font-size:32px;font-weight:500;color:#1a2a1a;margin-bottom:12px;line-height:1.2}
+.hero-sub{font-size:15px;color:#4a7a4a;line-height:1.6;max-width:560px}
+/* CARDS */
+.cards-section{padding:0 32px 40px;max-width:1100px}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.card{background:#fff;border:0.5px solid #c0dcc0;border-radius:12px;padding:20px;cursor:pointer;transition:box-shadow .15s,border-color .15s;text-decoration:none;display:block;position:relative}
+.card:hover{border-color:#2d7a2d;box-shadow:0 2px 12px rgba(45,122,45,.1)}
+.card.bloqueado{cursor:default;opacity:.6}
+.card.bloqueado:hover{border-color:#c0dcc0;box-shadow:none}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.card-icon{width:40px;height:40px;border-radius:10px;background:#f0f8f0;display:flex;align-items:center;justify-content:center;font-size:20px}
+.card-lock{font-size:14px;color:#a0b8a0}
+.card-title{font-size:14px;font-weight:500;color:#1a2a1a;margin-bottom:6px}
+.card-desc{font-size:12px;color:#4a7a4a;line-height:1.5}
+/* GESTOR BANNER */
+.gestor-banner{margin:0 32px 40px;max-width:1036px;background:#1a4a1a;border-radius:12px;padding:20px 28px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.gestor-banner-left{display:flex;align-items:center;gap:14px}
+.gestor-avatar{width:40px;height:40px;border-radius:50%;background:#2d7a2d;display:flex;align-items:center;justify-content:center;font-size:18px;color:#c8e8c8;flex-shrink:0}
+.gestor-title{font-size:15px;font-weight:500;color:#c8e8c8;margin-bottom:3px}
+.gestor-sub{font-size:12px;color:#90c090;line-height:1.4}
+.btn-gestor{background:#2d7a2d;color:#fff;border:none;padding:9px 22px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;transition:background .15s}
+.btn-gestor:hover{background:#1a5a1a}
+/* MODAL LOGIN */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.vis{opacity:1;pointer-events:all}
+.modal{background:#fff;border-radius:14px;padding:32px;width:360px;max-width:95vw}
+.modal-title{font-size:18px;font-weight:500;color:#1a2a1a;margin-bottom:4px}
+.modal-sub{font-size:13px;color:#4a7a4a;margin-bottom:24px}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:11px;color:#4a7a4a;margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px}
+.form-group input{width:100%;border:0.5px solid #a0c8a0;border-radius:6px;padding:8px 12px;font-size:13px;background:#f8fbf8;color:#1a2a1a;outline:none;transition:border .15s}
+.form-group input:focus{border-color:#2d7a2d}
+.btn-login{width:100%;background:#2d7a2d;color:#fff;border:none;padding:10px;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;margin-top:6px;transition:background .15s}
+.btn-login:hover{background:#1a5a1a}
+.btn-login:disabled{background:#90c090;cursor:not-allowed}
+.login-erro{font-size:12px;color:#a32d2d;margin-top:8px;min-height:16px}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;font-size:20px;color:#4a7a4a;cursor:pointer;line-height:1}
+/* SEÇÃO */
+.section-title{font-size:13px;font-weight:500;color:#4a7a4a;text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;padding-bottom:6px;border-bottom:0.5px solid #c0dcc0}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <a class="hdr-logo" href="#">
+    <div class="hdr-logo-box">GBS</div>
+    <span class="hdr-logo-txt">GBS Serviços</span>
+  </a>
+  <nav class="hdr-nav">
+    <a href="#">A empresa</a>
+    <a href="#">Segurança</a>
+    <a href="#controles">Controles</a>
+  </nav>
+  <div class="hdr-actions">
+    <span class="hdr-user hidden" id="hdr-user"></span>
+    <button class="btn-sair hidden" id="btn-sair" onclick="sair()">Sair</button>
+    <button class="btn-entrar" id="btn-entrar" onclick="abrirLogin()">Entrar</button>
+  </div>
+</div>
+
+<div class="hero" id="controles">
+  <div class="hero-tag">Acesso restrito</div>
+  <h1 class="hero-title">Controles operacionais</h1>
+  <p class="hero-sub">Os painéis abaixo são de uso interno. Entre com seu login para acessar os controles do seu contrato.</p>
+</div>
+
+<div class="cards-section">
+  <div class="section-title" id="sec-title">Entre para acessar os módulos</div>
+  <div class="cards-grid" id="cards-grid">
+    <!-- preenchido via JS -->
+  </div>
+</div>
+
+<div class="gestor-banner hidden" id="gestor-banner">
+  <div class="gestor-banner-left">
+    <div class="gestor-avatar">👤</div>
+    <div>
+      <div class="gestor-title">Área do Gestor</div>
+      <div class="gestor-sub">Acompanhe se os supervisores estão respondendo os planos de ação das ocorrências — no prazo ou em atraso.</div>
+    </div>
+  </div>
+  <button class="btn-gestor" onclick="window.location.href='tratativas/index.html'">Entrar</button>
+</div>
+
+<!-- MODAL LOGIN -->
+<div class="modal-overlay" id="modal-overlay" onclick="fecharLoginFora(event)">
+  <div class="modal" style="position:relative">
+    <button class="modal-close" onclick="fecharLogin()">×</button>
+    <div class="modal-title">Acessar controles</div>
+    <div class="modal-sub">Entre com seu e-mail e senha para continuar.</div>
+    <div class="form-group">
+      <label>E-mail</label>
+      <input type="email" id="inp-email" placeholder="seu@email.com" onkeydown="if(event.key==='Enter')fazerLogin()">
+    </div>
+    <div class="form-group">
+      <label>Senha</label>
+      <input type="password" id="inp-senha" placeholder="••••••••" onkeydown="if(event.key==='Enter')fazerLogin()">
+    </div>
+    <button class="btn-login" id="btn-login" onclick="fazerLogin()">Entrar</button>
+    <div class="login-erro" id="login-erro"></div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL='https://ndwivbhqglpnfyqwjbzu.supabase.co';
+const SUPABASE_KEY='sb_publishable_IhuNziyT5VYrMKRixcPGjA_LAn5ku-7';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+const MODULOS=[
+  {id:'jornada',     titulo:'Jornada de Leituristas', desc:'Hora inicial, final, pausas e horas trabalhadas por dia.',         icon:'📋', url:'../controles/jornada/index.html'},
+  {id:'impedimentos',titulo:'Controle de Impedimentos',desc:'Impedimentos por base, local e leiturista (GBS / Cemig).',         icon:'🚧', url:'../controles/impedimentos/index.html'},
+  {id:'transmissoes',titulo:'Pendências de Transmissão',desc:'Leituras e releituras pendentes, com status de prazo.',           icon:'📡', url:'../controles/transmissoes/index.html'},
+  {id:'fotos',       titulo:'Controle de Fotos',       desc:'Solicitações e realizações de fotos por UL e leiturista.',         icon:'📷', url:'../controles/fotos/index.html'},
+  {id:'erros',       titulo:'Erros de Leitura',        desc:'Instalações com erro de leitura por mês, base e leiturista.',      icon:'⚠️', url:'../controles/erros/index.html'},
+];
+
+let usuarioLogado=null;
+
+function renderCards(perfil,relatorios){
+  const grid=document.getElementById('cards-grid');
+  const permitidos=relatorios||[];
+  document.getElementById('sec-title').textContent=
+    perfil?'Módulos disponíveis':'Entre para acessar os módulos';
+
+  if(!perfil){
+    // não logado — mostra todos bloqueados
+    grid.innerHTML=MODULOS.map(m=>`
+      <div class="card bloqueado">
+        <div class="card-top">
+          <div class="card-icon">${m.icon}</div>
+          <span class="card-lock">🔒</span>
+        </div>
+        <div class="card-title">${m.titulo}</div>
+        <div class="card-desc">${m.desc}</div>
+      </div>`).join('');
+    return;
+  }
+
+  grid.innerHTML=MODULOS.map(m=>{
+    const temAcesso=permitidos.includes(m.id);
+    if(!temAcesso) return '';
+    return `
+      <a class="card" href="${m.url}">
+        <div class="card-top">
+          <div class="card-icon">${m.icon}</div>
+        </div>
+        <div class="card-title">${m.titulo}</div>
+        <div class="card-desc">${m.desc}</div>
+      </a>`;
+  }).join('');
+
+  // se gestor, mostrar também link de admin usuários
+  if(perfil==='gestor'){
+    grid.innerHTML+=`
+      <a class="card" href="admin-usuarios.html" style="border-color:#a0c8a0;background:#f8fbf8">
+        <div class="card-top">
+          <div class="card-icon">⚙️</div>
+        </div>
+        <div class="card-title">Gerenciar usuários</div>
+        <div class="card-desc">Criar logins, definir perfis, bases e permissões de acesso.</div>
+      </a>`;
+  }
+}
+
+async function carregarUsuario(){
+  const {data:{user}}=await sb.auth.getUser();
+  if(!user){renderCards(null,null);return;}
+  const {data:up}=await sb.from('usuarios_portal').select('*').eq('id',user.id).single();
+  if(!up||!up.ativo){await sb.auth.signOut();renderCards(null,null);return;}
+  usuarioLogado=up;
+  document.getElementById('hdr-user').textContent=up.nome;
+  document.getElementById('hdr-user').classList.remove('hidden');
+  document.getElementById('btn-sair').classList.remove('hidden');
+  document.getElementById('btn-entrar').classList.add('hidden');
+  renderCards(up.perfil, up.relatorios||[]);
+  // banner gestor
+  if(up.perfil==='gestor'||up.base===null){
+    document.getElementById('gestor-banner').classList.remove('hidden');
+  }
+}
+
+function abrirLogin(){
+  document.getElementById('modal-overlay').classList.add('vis');
+  setTimeout(()=>document.getElementById('inp-email').focus(),100);
+}
+function fecharLogin(){document.getElementById('modal-overlay').classList.remove('vis');}
+function fecharLoginFora(e){if(e.target===document.getElementById('modal-overlay'))fecharLogin();}
+
+async function fazerLogin(){
+  const email=document.getElementById('inp-email').value.trim();
+  const senha=document.getElementById('inp-senha').value;
+  const erro=document.getElementById('login-erro');
+  const btn=document.getElementById('btn-login');
+  if(!email||!senha){erro.textContent='Preencha e-mail e senha.';return;}
+  btn.disabled=true;btn.textContent='Entrando...';erro.textContent='';
+  const {error}=await sb.auth.signInWithPassword({email,password:senha});
+  if(error){
+    erro.textContent='E-mail ou senha incorretos.';
+    btn.disabled=false;btn.textContent='Entrar';
+    return;
+  }
+  fecharLogin();
+  await carregarUsuario();
+}
+
+async function sair(){
+  await sb.auth.signOut();
+  usuarioLogado=null;
+  document.getElementById('hdr-user').classList.add('hidden');
+  document.getElementById('btn-sair').classList.add('hidden');
+  document.getElementById('btn-entrar').classList.remove('hidden');
+  document.getElementById('gestor-banner').classList.add('hidden');
+  renderCards(null,null);
+}
+
+carregarUsuario();
+</script>
+</body>
+</html>
