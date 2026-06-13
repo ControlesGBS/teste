@@ -14,4 +14,4 @@ jobs:
           server: ftp.gbsservicos.com
           username: ${{ secrets.FTP_USER }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: /web/controles/jornada/
+          server-dir: /web/controles/teste/
