@@ -134,11 +134,11 @@ const SUPABASE_KEY='sb_publishable_IhuNziyT5VYrMKRixcPGjA_LAn5ku-7';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 const MODULOS=[
-  {id:'jornada',     titulo:'Jornada de Leituristas', desc:'Hora inicial, final, pausas e horas trabalhadas por dia.',         icon:'📋', url:'../controles/jornada/index.html'},
-  {id:'impedimentos',titulo:'Controle de Impedimentos',desc:'Impedimentos por base, local e leiturista (GBS / Cemig).',         icon:'🚧', url:'../controles/impedimentos/index.html'},
-  {id:'transmissoes',titulo:'Pendências de Transmissão',desc:'Leituras e releituras pendentes, com status de prazo.',           icon:'📡', url:'../controles/transmissoes/index.html'},
-  {id:'fotos',       titulo:'Controle de Fotos',       desc:'Solicitações e realizações de fotos por UL e leiturista.',         icon:'📷', url:'../controles/fotos/index.html'},
-  {id:'erros',       titulo:'Erros de Leitura',        desc:'Instalações com erro de leitura por mês, base e leiturista.',      icon:'⚠️', url:'../controles/erros/index.html'},
+  {id:'jornada',     titulo:'Jornada de Leituristas', desc:'Hora inicial, final, pausas e horas trabalhadas por dia.',         icon:'📋', url:'/controles/jornada/index.html'},
+  {id:'impedimentos',titulo:'Controle de Impedimentos',desc:'Impedimentos por base, local e leiturista (GBS / Cemig).',         icon:'🚧', url:'/controles/impedimentos/index.html'},
+  {id:'transmissoes',titulo:'Pendências de Transmissão',desc:'Leituras e releituras pendentes, com status de prazo.',           icon:'📡', url:'/controles/transmissoes/index.html'},
+  {id:'fotos',       titulo:'Controle de Fotos',       desc:'Solicitações e realizações de fotos por UL e leiturista.',         icon:'📷', url:'/controles/fotos/index.html'},
+  {id:'erros',       titulo:'Erros de Leitura',        desc:'Instalações com erro de leitura por mês, base e leiturista.',      icon:'⚠️', url:'/controles/erros/index.html'},
 ];
 
 let usuarioLogado=null;
