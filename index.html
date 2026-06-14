@@ -176,6 +176,18 @@ function renderCards(perfil,relatorios){
       </a>`;
   }).join('');
 
+  // card minhas tratativas para supervisores
+  if(perfil==='supervisor'){
+    grid.innerHTML+=`
+      <a class="card" href="/controles/tratativas/supervisor.html" style="border-color:#fac775;background:#fffdf5">
+        <div class="card-top">
+          <div class="card-icon" style="background:#faeeda">📋</div>
+        </div>
+        <div class="card-title">Minhas Tratativas</div>
+        <div class="card-desc">Consulte e responda as tratativas atribuídas a você.</div>
+      </a>`;
+  }
+
   // se gestor, mostrar também link de admin usuários
   if(perfil==='gestor'){
     grid.innerHTML+=`
