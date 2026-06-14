@@ -153,10 +153,15 @@ tbody td{padding:7px 10px;border-bottom:0.5px solid #e0eee0;vertical-align:middl
     <button class="modal-close" onclick="fecharModal()">×</button>
     <div class="modal-title">Editar usuário</div>
     <input type="hidden" id="e-id">
+    <input type="hidden" id="e-email-atual">
     <div class="form-grid">
       <div class="form-group">
         <label>Nome</label>
         <input type="text" id="e-nome">
+      </div>
+      <div class="form-group">
+        <label>E-mail</label>
+        <input type="email" id="e-email" placeholder="email@gbsservicos.com">
       </div>
       <div class="form-group">
         <label>Perfil</label>
@@ -284,7 +289,9 @@ async function criarUsuario(){
 
 function abrirEdicao(u){
   document.getElementById('e-id').value=u.id;
+  document.getElementById('e-email-atual').value=u.email||'';
   document.getElementById('e-nome').value=u.nome;
+  document.getElementById('e-email').value=u.email||'';
   document.getElementById('e-perfil').value=u.perfil;
   document.getElementById('e-base').value=u.base||'';
   document.getElementById('e-senha').value='';
@@ -302,6 +309,8 @@ function fecharModalFora(e){if(e.target===document.getElementById('modal-edit'))
 async function salvarEdicao(){
   const id=document.getElementById('e-id').value;
   const nome=document.getElementById('e-nome').value.trim();
+  const email=document.getElementById('e-email').value.trim();
+  const emailAtual=document.getElementById('e-email-atual').value.trim();
   const perfil=document.getElementById('e-perfil').value;
   const base=document.getElementById('e-base').value||null;
   const senha=document.getElementById('e-senha').value;
@@ -309,10 +318,33 @@ async function salvarEdicao(){
   const msg=document.getElementById('msg-edit');
   const btn=document.getElementById('btn-salvar');
   if(!nome){msg.className='msg-edit erro';msg.textContent='Nome obrigatório.';return;}
+  if(!email){msg.className='msg-edit erro';msg.textContent='E-mail obrigatório.';return;}
+  if(senha&&senha.length<6){msg.className='msg-edit erro';msg.textContent='Senha mínima de 6 caracteres.';return;}
   btn.disabled=true;msg.textContent='Salvando...';msg.className='msg-edit';
-  const {error}=await sb.from('usuarios_portal').update({nome,perfil,base,relatorios:rels}).eq('id',id);
+
+  // Atualizar tabela usuarios_portal
+  const {error}=await sb.from('usuarios_portal').update({nome,email,perfil,base,relatorios:rels}).eq('id',id);
   if(error){msg.className='msg-edit erro';msg.textContent='Erro ao salvar.';btn.disabled=false;return;}
-  msg.className='msg-edit ok';msg.textContent='✓ Salvo!';
+
+  // Atualizar email no Auth se mudou
+  if(email!==emailAtual){
+    const {error:e2}=await sb.auth.admin.updateUserById(id,{email});
+    if(e2) console.warn('Erro ao atualizar email no Auth:',e2.message);
+  }
+
+  // Atualizar senha se preenchida
+  if(senha){
+    const {error:e3}=await sb.auth.admin.updateUserById(id,{password:senha});
+    if(e3){
+      msg.className='msg-edit erro';
+      msg.textContent='Dados salvos mas erro ao alterar senha: '+e3.message;
+      btn.disabled=false;
+      carregarUsuarios();
+      return;
+    }
+  }
+
+  msg.className='msg-edit ok';msg.textContent='✓ Salvo com sucesso!';
   btn.disabled=false;
   carregarUsuarios();
   setTimeout(fecharModal,800);
