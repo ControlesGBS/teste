@@ -64,6 +64,26 @@ body{font-family:system-ui,sans-serif;background:#f4f6f4;color:#1a2a1a;min-heigh
 /* SEÇÃO */
 .section-title{font-size:13px;font-weight:500;color:#4a7a4a;text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;padding-bottom:6px;border-bottom:0.5px solid #c0dcc0}
 .hidden{display:none!important}
+/* POPUP */
+.popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity .2s}
+.popup-overlay.vis{opacity:1;pointer-events:all}
+.popup{background:#fff;border-radius:12px;width:440px;max-width:95vw;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.15)}
+.popup-hdr{padding:16px 18px 12px}
+.popup-icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:10px}
+.popup-icon.warn{background:#faeeda;color:#854f0b}
+.popup-icon.info{background:#e6f1fb;color:#0c447c}
+.popup-title{font-size:15px;font-weight:500;color:#1a2a1a;margin-bottom:3px}
+.popup-sub{font-size:12px;color:#4a7a4a}
+.popup-body{padding:0 18px 12px}
+.popup-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:0.5px solid #e0eee0;font-size:12px}
+.popup-item:last-child{border-bottom:none}
+.popup-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.dot-r{background:#e24b4a}.dot-a{background:#ef9f27}.dot-b{background:#378add}
+.popup-item-txt{flex:1;color:#1a2a1a;line-height:1.5}
+.popup-item-txt span{color:#4a7a4a;font-size:11px;display:block;margin-top:1px}
+.popup-footer{padding:12px 18px;border-top:0.5px solid #e0eee0;display:flex;gap:8px;justify-content:flex-end}
+.btn-popup-pri{background:#2d7a2d;color:#fff;border:none;border-radius:6px;padding:7px 18px;font-size:12px;font-weight:500;cursor:pointer}
+.btn-popup-sec{background:none;border:0.5px solid #c0dcc0;color:#4a7a4a;border-radius:6px;padding:7px 18px;font-size:12px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -98,15 +118,36 @@ body{font-family:system-ui,sans-serif;background:#f4f6f4;color:#1a2a1a;min-heigh
   </div>
 </div>
 
-<div class="gestor-banner hidden" id="gestor-banner">
-  <div class="gestor-banner-left">
-    <div class="gestor-avatar">👤</div>
-    <div>
-      <div class="gestor-title">Área do Gestor</div>
-      <div class="gestor-sub">Acompanhe se os supervisores estão respondendo os planos de ação das ocorrências — no prazo ou em atraso.</div>
+<!-- POPUP SUPERVISOR -->
+<div class="popup-overlay" id="popup-sup">
+  <div class="popup">
+    <div class="popup-hdr">
+      <div class="popup-icon warn">⚠️</div>
+      <div class="popup-title">Você tem tratativas pendentes</div>
+      <div class="popup-sub">Responda dentro do prazo para evitar atraso.</div>
+    </div>
+    <div class="popup-body" id="popup-sup-body"></div>
+    <div class="popup-footer">
+      <button class="btn-popup-sec" onclick="fecharPopup('popup-sup')">Ver depois</button>
+      <button class="btn-popup-pri" onclick="location.href='/controles/tratativas/supervisor.html'">Responder agora</button>
     </div>
   </div>
-  <button class="btn-gestor" onclick="window.location.href='tratativas/index.html'">Entrar</button>
+</div>
+
+<!-- POPUP GESTOR -->
+<div class="popup-overlay" id="popup-gestor">
+  <div class="popup">
+    <div class="popup-hdr">
+      <div class="popup-icon info">💬</div>
+      <div class="popup-title" id="popup-gestor-title">Respostas novas</div>
+      <div class="popup-sub" id="popup-gestor-sub"></div>
+    </div>
+    <div class="popup-body" id="popup-gestor-body"></div>
+    <div class="popup-footer">
+      <button class="btn-popup-sec" onclick="fecharPopup('popup-gestor')">Fechar</button>
+      <button class="btn-popup-pri" onclick="location.href='/controles/tratativas/index.html'">Ver na área do gestor</button>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL LOGIN -->
@@ -188,6 +229,18 @@ function renderCards(perfil,relatorios){
       </a>`;
   }
 
+  // card tratativas para gestor, gestor1, supervisor_geral
+  if(['gestor','gestor1','supervisor_geral'].includes(perfil)){
+    grid.innerHTML+=`
+      <a class="card" href="/controles/tratativas/index.html" style="border-color:#1a4a1a;background:#f4f8f4">
+        <div class="card-top">
+          <div class="card-icon" style="background:#e0f0e0">👤</div>
+        </div>
+        <div class="card-title">Área do Gestor</div>
+        <div class="card-desc">Acompanhe as tratativas dos supervisores — no prazo ou em atraso.</div>
+      </a>`;
+  }
+
   // se gestor, mostrar também link de admin usuários
   if(perfil==='gestor'){
     grid.innerHTML+=`
@@ -212,10 +265,7 @@ async function carregarUsuario(){
   document.getElementById('btn-sair').classList.remove('hidden');
   document.getElementById('btn-entrar').classList.add('hidden');
   renderCards(up.perfil, up.relatorios||[]);
-  // banner gestor
-  if(up.perfil==='gestor'||up.base===null){
-    document.getElementById('gestor-banner').classList.remove('hidden');
-  }
+  await verificarPopups(up, user.id);
 }
 
 function abrirLogin(){
@@ -240,6 +290,39 @@ async function fazerLogin(){
   }
   fecharLogin();
   await carregarUsuario();
+}
+
+function fecharPopup(id){document.getElementById(id).classList.remove('vis');}
+
+async function verificarPopups(up, userId){
+  const hoje=new Date(); hoje.setHours(0,0,0,0);
+  const perfil=up.perfil;
+  if(perfil==='supervisor'){
+    const {data:trats}=await sb.from('tratativas').select('id,tipo,detalhe,prazo_resposta').eq('supervisor_id',userId).eq('respondida',false);
+    if(!trats||!trats.length) return;
+    const TIPO={'impedimentos':'Impedimentos','erros':'Erros leitura','meta':'Meta leituras','inicio_tardio':'Início tardio','manual':'Manual'};
+    document.getElementById('popup-sup-body').innerHTML=trats.map(t=>{
+      const atrasada=new Date(t.prazo_resposta)<hoje;
+      const amanha=new Date(t.prazo_resposta).toDateString()===new Date(Date.now()+86400000).toDateString();
+      const cor=atrasada?'dot-r':amanha?'dot-a':'dot-b';
+      const label=atrasada?'Atrasada':amanha?'Vence amanhã':'Aberta';
+      const bc=atrasada?'#fcebeb':amanha?'#faeeda':'#e6f1fb';
+      const tc=atrasada?'#791f1f':amanha?'#633806':'#0c447c';
+      return `<div class="popup-item"><div class="popup-dot ${cor}"></div><div class="popup-item-txt">${TIPO[t.tipo]||t.tipo} <span style="background:${bc};color:${tc};padding:1px 6px;border-radius:6px;font-size:10px">${label}</span><span>${t.detalhe||'—'} · prazo ${new Date(t.prazo_resposta+'T12:00:00').toLocaleDateString('pt-BR')}</span></div></div>`;
+    }).join('');
+    document.getElementById('popup-sup').classList.add('vis');
+  } else if(['gestor','gestor1','supervisor_geral'].includes(perfil)){
+    const {data:ua}=await sb.from('usuarios_ultimo_acesso').select('ultimo_acesso').eq('user_id',userId).single();
+    const ultimoAcesso=ua?.ultimo_acesso?new Date(ua.ultimo_acesso):new Date(0);
+    await sb.from('usuarios_ultimo_acesso').upsert({user_id:userId,ultimo_acesso:new Date().toISOString()});
+    const {data:trats}=await sb.from('tratativas').select('supervisor_nome,tipo,detalhe,respondida_em').eq('respondida',true).gt('respondida_em',ultimoAcesso.toISOString()).order('respondida_em',{ascending:false});
+    if(!trats||!trats.length) return;
+    const TIPO={'impedimentos':'Impedimentos','erros':'Erros leitura','meta':'Meta leituras','inicio_tardio':'Início tardio','manual':'Manual'};
+    document.getElementById('popup-gestor-title').textContent=`${trats.length} resposta(s) nova(s) desde seu último acesso`;
+    document.getElementById('popup-gestor-sub').textContent=[...new Set(trats.map(t=>t.supervisor_nome))].join(', ');
+    document.getElementById('popup-gestor-body').innerHTML=trats.map(t=>`<div class="popup-item"><div class="popup-dot dot-b"></div><div class="popup-item-txt">${t.supervisor_nome||'—'}<span>${TIPO[t.tipo]||t.tipo} · ${t.detalhe||'—'} · ${new Date(t.respondida_em).toLocaleString('pt-BR')}</span></div></div>`).join('');
+    document.getElementById('popup-gestor').classList.add('vis');
+  }
 }
 
 async function sair(){
