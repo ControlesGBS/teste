@@ -33,20 +33,20 @@ body{font-family:system-ui,sans-serif;background:#f4f6f4;color:#1a2a1a;font-size
 .msg-criar.ok{color:#16a34a}
 .msg-criar.erro{color:#a32d2d}
 /* TABELA USUÁRIOS */
-table{width:100%;border-collapse:collapse;font-size:12px}
-thead th{background:#1a4a1a;color:#c0e8c0;padding:7px 10px;text-align:left;font-size:11px;font-weight:500;white-space:nowrap}
+table{width:100%;border-collapse:collapse;font-size:17px}
+thead th{background:#1a4a1a;color:#c0e8c0;padding:7px 10px;text-align:left;font-size:17px;font-weight:500;white-space:nowrap}
 tbody tr:nth-child(even){background:#f8fbf8}
 tbody td{padding:7px 10px;border-bottom:0.5px solid #e0eee0;vertical-align:middle}
-.badge-perfil{display:inline-block;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:500}
+.badge-perfil{display:inline-block;padding:3px 10px;border-radius:8px;font-size:14px;font-weight:500}
 .bp-gestor{background:#eeedfe;color:#3c3489}
 .bp-supervisor{background:#e6f1fb;color:#0c447c}
 .bp-auxiliar{background:#faeeda;color:#633806}
-.badge-ativo{display:inline-block;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:500}
+.badge-ativo{display:inline-block;padding:3px 10px;border-radius:8px;font-size:14px;font-weight:500}
 .ba-sim{background:#eaf3de;color:#27500a}
 .ba-nao{background:#fcebeb;color:#791f1f}
-.btn-edit{background:none;border:0.5px solid #a0c8a0;border-radius:4px;padding:3px 10px;font-size:11px;cursor:pointer;color:#1a4a1a}
+.btn-edit{background:none;border:0.5px solid #a0c8a0;border-radius:4px;padding:4px 12px;font-size:14px;cursor:pointer;color:#1a4a1a}
 .btn-edit:hover{background:#f0f8f0}
-.btn-toggle{background:none;border:0.5px solid #f09595;border-radius:4px;padding:3px 10px;font-size:11px;cursor:pointer;color:#a32d2d}
+.btn-toggle{background:none;border:0.5px solid #f09595;border-radius:4px;padding:4px 12px;font-size:14px;cursor:pointer;color:#a32d2d}
 .btn-toggle.ativar{border-color:#a0c8a0;color:#1a4a1a}
 /* MODAL EDIÇÃO */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .2s}
@@ -239,9 +239,9 @@ async function carregarUsuarios(){
       <td style="color:#4a7a4a">${u.email}</td>
       <td><span class="badge-perfil ${CLASSE[u.perfil]||''}">${LABEL[u.perfil]||u.perfil}</span></td>
       <td>${u.base||'Todas'}</td>
-      <td style="font-size:11px;color:#4a7a4a">${(u.relatorios||[]).join(', ')||'—'}</td>
+      <td style="font-size:17px;color:#4a7a4a">${(u.relatorios||[]).join(', ')||'—'}</td>
       <td><span class="badge-ativo ${u.ativo?'ba-sim':'ba-nao'}">${u.ativo?'Ativo':'Inativo'}</span></td>
-      <td style="font-size:11px;color:#4a7a4a;white-space:nowrap">${u.last_login?new Date(u.last_login).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}):'Nunca acessou'}</td>
+      <td style="font-size:17px;color:#4a7a4a;white-space:nowrap">${u.last_login?new Date(u.last_login).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}):'Nunca acessou'}</td>
       <td style="display:flex;gap:6px;align-items:center">
         <button class="btn-edit" onclick='abrirEdicao(${JSON.stringify(u)})'>Editar</button>
         <button class="btn-toggle ${u.ativo?'':'ativar'}" onclick="toggleAtivo('${u.id}',${u.ativo})">${u.ativo?'Desativar':'Ativar'}</button>
