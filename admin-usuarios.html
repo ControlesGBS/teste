@@ -33,10 +33,10 @@ body{font-family:system-ui,sans-serif;background:#f4f6f4;color:#1a2a1a;font-size
 .msg-criar.ok{color:#16a34a}
 .msg-criar.erro{color:#a32d2d}
 /* TABELA USUÁRIOS */
-table{width:100%;border-collapse:collapse;font-size:17px}
-thead th{background:#1a4a1a;color:#c0e8c0;padding:7px 10px;text-align:left;font-size:17px;font-weight:500;white-space:nowrap}
+table{width:100%;border-collapse:collapse;font-size:14px}
+thead th{background:#1a4a1a;color:#c0e8c0;padding:8px 10px;text-align:left;font-size:14px;font-weight:500;white-space:nowrap}
 tbody tr:nth-child(even){background:#f8fbf8}
-tbody td{padding:7px 10px;border-bottom:0.5px solid #e0eee0;vertical-align:middle}
+tbody td{padding:9px 10px;border-bottom:0.5px solid #e0eee0;vertical-align:middle}
 .badge-perfil{display:inline-block;padding:3px 10px;border-radius:8px;font-size:14px;font-weight:500}
 .bp-gestor{background:#eeedfe;color:#3c3489}
 .bp-supervisor{background:#e6f1fb;color:#0c447c}
@@ -130,7 +130,7 @@ tbody td{padding:7px 10px;border-bottom:0.5px solid #e0eee0;vertical-align:middl
       <span>Usuários cadastrados</span>
       <span id="count-users" style="font-size:11px;color:#90c090"></span>
     </div>
-    <div class="section-body" style="padding:0">
+    <div class="section-body" style="padding:0;overflow-x:auto">
       <table>
         <thead><tr>
           <th>Nome</th>
@@ -239,9 +239,9 @@ async function carregarUsuarios(){
       <td style="color:#4a7a4a">${u.email}</td>
       <td><span class="badge-perfil ${CLASSE[u.perfil]||''}">${LABEL[u.perfil]||u.perfil}</span></td>
       <td>${u.base||'Todas'}</td>
-      <td style="font-size:17px;color:#4a7a4a">${(u.relatorios||[]).join(', ')||'—'}</td>
+      <td style="font-size:14px;color:#4a7a4a">${(u.relatorios||[]).join(', ')||'—'}</td>
       <td><span class="badge-ativo ${u.ativo?'ba-sim':'ba-nao'}">${u.ativo?'Ativo':'Inativo'}</span></td>
-      <td style="font-size:17px;color:#4a7a4a;white-space:nowrap">${u.last_login?new Date(u.last_login).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}):'Nunca acessou'}</td>
+      <td style="font-size:14px;color:#4a7a4a;white-space:nowrap">${u.last_login?new Date(u.last_login).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}):'Nunca acessou'}</td>
       <td style="display:flex;gap:6px;align-items:center">
         <button class="btn-edit" onclick='abrirEdicao(${JSON.stringify(u)})'>Editar</button>
         <button class="btn-toggle ${u.ativo?'':'ativar'}" onclick="toggleAtivo('${u.id}',${u.ativo})">${u.ativo?'Desativar':'Ativar'}</button>
