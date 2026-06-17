@@ -288,6 +288,11 @@ async function fazerLogin(){
     btn.disabled=false;btn.textContent='Entrar';
     return;
   }
+  const {data:{user}}=await sb.auth.getUser();
+  if(user){
+    await sb.from('usuarios_portal').update({last_login:new Date().toISOString()}).eq('id',user.id);
+  }
+  if(window.gbsMarcarLogin) window.gbsMarcarLogin();
   fecharLogin();
   await carregarUsuario();
 }
@@ -337,5 +342,6 @@ async function sair(){
 
 carregarUsuario();
 </script>
+<script src="/controles/auto-logout.js"></script>
 </body>
 </html>
