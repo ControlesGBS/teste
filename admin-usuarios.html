@@ -139,9 +139,10 @@ tbody td{padding:7px 10px;border-bottom:0.5px solid #e0eee0;vertical-align:middl
           <th>Base</th>
           <th>Relatórios</th>
           <th>Status</th>
+          <th>Último acesso</th>
           <th>Ações</th>
         </tr></thead>
-        <tbody id="tbody-users"><tr><td colspan="7" class="status-msg">Carregando...</td></tr></tbody>
+        <tbody id="tbody-users"><tr><td colspan="8" class="status-msg">Carregando...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -214,7 +215,7 @@ const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
   const {data:{user}}=await sb.auth.getUser();
   if(!user){location.href='index.html';return;}
   const {data:up}=await sb.from('usuarios_portal').select('perfil,ativo').eq('id',user.id).single();
-  if(!up||up.perfil!=='gestor'||!up.ativo){location.href='index.html';return;}
+  if(!up||!['gestor','gestor1','supervisor_geral'].includes(up.perfil)||!up.ativo){location.href='index.html';return;}
   carregarUsuarios();
 })();
 
@@ -240,6 +241,7 @@ async function carregarUsuarios(){
       <td>${u.base||'Todas'}</td>
       <td style="font-size:11px;color:#4a7a4a">${(u.relatorios||[]).join(', ')||'—'}</td>
       <td><span class="badge-ativo ${u.ativo?'ba-sim':'ba-nao'}">${u.ativo?'Ativo':'Inativo'}</span></td>
+      <td style="font-size:11px;color:#4a7a4a;white-space:nowrap">${u.last_login?new Date(u.last_login).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}):'Nunca acessou'}</td>
       <td style="display:flex;gap:6px;align-items:center">
         <button class="btn-edit" onclick='abrirEdicao(${JSON.stringify(u)})'>Editar</button>
         <button class="btn-toggle ${u.ativo?'':'ativar'}" onclick="toggleAtivo('${u.id}',${u.ativo})">${u.ativo?'Desativar':'Ativar'}</button>
@@ -355,5 +357,6 @@ async function toggleAtivo(id,ativo){
   carregarUsuarios();
 }
 </script>
+<script src="/controles/auto-logout.js"></script>
 </body>
 </html>
