@@ -16,7 +16,7 @@ body{font-family:system-ui,sans-serif;background:#f4f6f4;color:#1a2a1a;min-heigh
 .hdr-nav{display:flex;gap:4px;margin-left:24px;flex:1}
 .hdr-nav a{color:#90c090;font-size:13px;padding:6px 14px;border-radius:4px;text-decoration:none;transition:background .15s}
 .hdr-nav a:hover{background:#2d5a2d;color:#c8e8c8}
-.hdr-actions{display:flex;align-items:center;gap:10px}
+.hdr-actions{display:flex;align-items:center;gap:10px;margin-left:auto}
 .btn-entrar{background:#2d7a2d;color:#fff;border:none;padding:8px 20px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s}
 .btn-entrar:hover{background:#1a5a1a}
 .btn-sair{background:none;border:1px solid #4a7a4a;color:#90c090;padding:6px 14px;border-radius:5px;font-size:12px;cursor:pointer}
@@ -93,11 +93,6 @@ body{font-family:system-ui,sans-serif;background:#f4f6f4;color:#1a2a1a;min-heigh
     <img src="../jornada/logo_gbs.png" alt="GBS" style="height:36px" onerror="this.style.display='none'">
     <span class="hdr-logo-txt">GBS Serviços</span>
   </a>
-  <nav class="hdr-nav">
-    <a href="#">A empresa</a>
-    <a href="#">Segurança</a>
-    <a href="#controles">Controles</a>
-  </nav>
   <div class="hdr-actions">
     <span class="hdr-user hidden" id="hdr-user"></span>
     <button class="btn-sair hidden" id="btn-sair" onclick="sair()">Sair</button>
