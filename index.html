@@ -3,44 +3,403 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GBS Serviços Empresariais</title>
+<title>Portal GBS Serviços</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden}
-body{font-family:system-ui,sans-serif;background:#fff;display:flex;align-items:center;justify-content:center}
-
-.page{position:relative;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center}
-.img-wrap{position:relative;display:inline-block;max-width:100%;max-height:100%}
-.img-wrap img{display:block;max-width:100vw;max-height:100vh;width:auto;height:auto}
-
-.nav-overlay{position:absolute;top:1%;right:0;display:flex;align-items:center;gap:1vw;
-  padding-right:2vw}
-.nav-overlay a{color:#1a4a1a;text-decoration:none;font-size:.85vw;font-weight:500}
-.nav-overlay a:hover{text-decoration:underline}
-.nav-overlay .btn-link{font-weight:700;border:2px solid #1a4a1a;padding:.4vw 1.1vw;
-  border-radius:6px;text-decoration:none}
-.nav-overlay .btn-link:hover{background:#1a4a1a;color:#fff}
-
-@media(max-width:700px){
-  .nav-overlay{gap:8px;padding-right:10px;top:6px}
-  .nav-overlay a{font-size:10px}
-  .nav-overlay .btn-link{padding:4px 8px}
-}
+body{font-family:system-ui,sans-serif;background:#f4f6f4;color:#1a2a1a;min-height:100vh}
+/* HEADER */
+.hdr{background:#1a4a1a;padding:0 32px;display:flex;align-items:center;gap:16px;height:56px}
+.hdr-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.hdr-logo-box{width:32px;height:32px;background:#2d7a2d;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#c8e8c8}
+.hdr-logo-txt{font-size:15px;font-weight:500;color:#c8e8c8}
+.hdr-nav{display:flex;gap:4px;margin-left:24px;flex:1}
+.hdr-nav a{color:#90c090;font-size:13px;padding:6px 14px;border-radius:4px;text-decoration:none;transition:background .15s}
+.hdr-nav a:hover{background:#2d5a2d;color:#c8e8c8}
+.hdr-actions{display:flex;align-items:center;gap:10px}
+.btn-entrar{background:#2d7a2d;color:#fff;border:none;padding:8px 20px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s}
+.btn-entrar:hover{background:#1a5a1a}
+.btn-sair{background:none;border:1px solid #4a7a4a;color:#90c090;padding:6px 14px;border-radius:5px;font-size:12px;cursor:pointer}
+.hdr-user{font-size:12px;color:#90c090}
+/* HERO */
+.hero{padding:48px 32px 32px;max-width:900px}
+.hero-tag{font-size:11px;font-weight:500;color:#2d7a2d;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.hero-title{font-size:32px;font-weight:500;color:#1a2a1a;margin-bottom:12px;line-height:1.2}
+.hero-sub{font-size:15px;color:#4a7a4a;line-height:1.6;max-width:560px}
+/* CARDS */
+.cards-section{padding:0 32px 40px;max-width:1100px}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.card{background:#fff;border:0.5px solid #c0dcc0;border-radius:12px;padding:20px;cursor:pointer;transition:box-shadow .15s,border-color .15s;text-decoration:none;display:block;position:relative}
+.card:hover{border-color:#2d7a2d;box-shadow:0 2px 12px rgba(45,122,45,.1)}
+.card.bloqueado{cursor:default;opacity:.6}
+.card.bloqueado:hover{border-color:#c0dcc0;box-shadow:none}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.card-icon{width:40px;height:40px;border-radius:10px;background:#f0f8f0;display:flex;align-items:center;justify-content:center;font-size:20px}
+.card-lock{font-size:14px;color:#a0b8a0}
+.card-title{font-size:14px;font-weight:500;color:#1a2a1a;margin-bottom:6px}
+.card-desc{font-size:12px;color:#4a7a4a;line-height:1.5}
+/* GESTOR BANNER */
+.gestor-banner{margin:0 32px 40px;max-width:1036px;background:#1a4a1a;border-radius:12px;padding:20px 28px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.gestor-banner-left{display:flex;align-items:center;gap:14px}
+.gestor-avatar{width:40px;height:40px;border-radius:50%;background:#2d7a2d;display:flex;align-items:center;justify-content:center;font-size:18px;color:#c8e8c8;flex-shrink:0}
+.gestor-title{font-size:15px;font-weight:500;color:#c8e8c8;margin-bottom:3px}
+.gestor-sub{font-size:12px;color:#90c090;line-height:1.4}
+.btn-gestor{background:#2d7a2d;color:#fff;border:none;padding:9px 22px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;transition:background .15s}
+.btn-gestor:hover{background:#1a5a1a}
+/* MODAL LOGIN */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.vis{opacity:1;pointer-events:all}
+.modal{background:#fff;border-radius:14px;padding:32px;width:360px;max-width:95vw}
+.modal-title{font-size:18px;font-weight:500;color:#1a2a1a;margin-bottom:4px}
+.modal-sub{font-size:13px;color:#4a7a4a;margin-bottom:24px}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:11px;color:#4a7a4a;margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px}
+.form-group input{width:100%;border:0.5px solid #a0c8a0;border-radius:6px;padding:8px 12px;font-size:13px;background:#f8fbf8;color:#1a2a1a;outline:none;transition:border .15s}
+.form-group input:focus{border-color:#2d7a2d}
+.btn-login{width:100%;background:#2d7a2d;color:#fff;border:none;padding:10px;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;margin-top:6px;transition:background .15s}
+.btn-login:hover{background:#1a5a1a}
+.btn-login:disabled{background:#90c090;cursor:not-allowed}
+.login-erro{font-size:12px;color:#a32d2d;margin-top:8px;min-height:16px}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;font-size:20px;color:#4a7a4a;cursor:pointer;line-height:1}
+/* SEÇÃO */
+.section-title{font-size:13px;font-weight:500;color:#4a7a4a;text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;padding-bottom:6px;border-bottom:0.5px solid #c0dcc0}
+.hidden{display:none!important}
+/* POPUP */
+.popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity .2s}
+.popup-overlay.vis{opacity:1;pointer-events:all}
+.popup{background:#fff;border-radius:12px;width:440px;max-width:95vw;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.15)}
+.popup-hdr{padding:16px 18px 12px}
+.popup-icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:10px}
+.popup-icon.warn{background:#faeeda;color:#854f0b}
+.popup-icon.info{background:#e6f1fb;color:#0c447c}
+.popup-title{font-size:15px;font-weight:500;color:#1a2a1a;margin-bottom:3px}
+.popup-sub{font-size:12px;color:#4a7a4a}
+.popup-body{padding:0 18px 12px}
+.popup-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:0.5px solid #e0eee0;font-size:12px}
+.popup-item:last-child{border-bottom:none}
+.popup-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.dot-r{background:#e24b4a}.dot-a{background:#ef9f27}.dot-b{background:#378add}
+.popup-item-txt{flex:1;color:#1a2a1a;line-height:1.5}
+.popup-item-txt span{color:#4a7a4a;font-size:11px;display:block;margin-top:1px}
+.popup-footer{padding:12px 18px;border-top:0.5px solid #e0eee0;display:flex;gap:8px;justify-content:flex-end}
+.btn-popup-pri{background:#2d7a2d;color:#fff;border:none;border-radius:6px;padding:7px 18px;font-size:12px;font-weight:500;cursor:pointer}
+/* SEÇÃO EMPRESA */
+.empresa-section{padding:48px 32px;max-width:1100px;background:#fff}
+.empresa-tag{font-size:11px;font-weight:500;color:#2d7a2d;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.empresa-title{font-size:28px;font-weight:500;color:#1a2a1a;margin-bottom:8px;line-height:1.2}
+.empresa-banner{font-size:16px;font-style:italic;color:#4a7a4a;margin-bottom:32px;line-height:1.5}
+.empresa-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;margin-bottom:32px}
+.empresa-card{background:#f8fbf8;border:0.5px solid #c0dcc0;border-radius:12px;padding:22px}
+.empresa-card-title{font-size:13px;font-weight:600;color:#2d7a2d;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.empresa-card-txt{font-size:14px;color:#1a2a1a;line-height:1.6}
+.valores-title{font-size:13px;font-weight:500;color:#4a7a4a;text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;padding-bottom:6px;border-bottom:0.5px solid #c0dcc0}
+.valores-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.valor-item{padding:16px;background:#f8fbf8;border-radius:10px;border-left:3px solid #2d7a2d}
+.valor-nome{font-size:14px;font-weight:600;color:#1a4a1a;margin-bottom:5px}
+.valor-desc{font-size:13px;color:#4a7a4a;line-height:1.5}
 </style>
 </head>
 <body>
 
-<div class="page">
-  <div class="img-wrap">
-    <img src="principal.png" alt="GBS Serviços — 27 anos. Qualidade que gera confiança, Segurança como um valor, Experiência que faz a diferença, Eficiência que gera resultados, Responsabilidade em todas as etapas. Qualidade com segurança é o nosso forte.">
-    <div class="nav-overlay">
-      <a href="#">A empresa</a>
-      <a href="#">Segurança</a>
-      <a class="btn-link" href="#">Leiturista</a>
-      <a class="btn-link" href="portal.html">Controles</a>
+<div class="hdr">
+  <a class="hdr-logo" href="#">
+    <img src="../jornada/logo_gbs.png" alt="GBS" style="height:36px" onerror="this.style.display='none'">
+    <span class="hdr-logo-txt">GBS Serviços</span>
+  </a>
+  <nav class="hdr-nav">
+    <a href="#empresa">A empresa</a>
+    <a href="#">Segurança</a>
+    <a href="#controles">Controles</a>
+  </nav>
+  <div class="hdr-actions">
+    <span class="hdr-user hidden" id="hdr-user"></span>
+    <button class="btn-sair hidden" id="btn-sair" onclick="sair()">Sair</button>
+    <button class="btn-entrar" id="btn-entrar" onclick="abrirLogin()">Entrar</button>
+  </div>
+</div>
+
+<div class="empresa-section" id="empresa">
+  <div class="empresa-tag">A empresa</div>
+  <div class="empresa-title">GBS Serviços Empresariais</div>
+  <div class="empresa-banner">"GBS, Qualidade com Segurança é o nosso forte!"</div>
+
+  <div class="empresa-grid">
+    <div class="empresa-card">
+      <div class="empresa-card-title">Negócio</div>
+      <div class="empresa-card-txt">Satisfazer a demanda na prestação de serviços com qualidade e segurança.</div>
+    </div>
+    <div class="empresa-card">
+      <div class="empresa-card-title">Visão</div>
+      <div class="empresa-card-txt">Ser referência na prestação de serviços.</div>
+    </div>
+    <div class="empresa-card">
+      <div class="empresa-card-title">Missão</div>
+      <div class="empresa-card-txt">Ser líder no setor, atuando com segurança, eficiência e responsabilidade social, buscando o crescimento contínuo de nossos colaboradores e assegurando a plena satisfação de nossos clientes.</div>
+    </div>
+  </div>
+
+  <div class="valores-title">Nossos valores</div>
+  <div class="valores-grid">
+    <div class="valor-item">
+      <div class="valor-nome">Saúde e Segurança</div>
+      <div class="valor-desc">Inspirar, provocar e ser um guia essencial para que todos os colaboradores tenham saúde e segurança não apenas na empresa, mas como um princípio de vida.</div>
+    </div>
+    <div class="valor-item">
+      <div class="valor-nome">Ética</div>
+      <div class="valor-desc">Agir com ética e dignidade, mantendo sempre a coerência.</div>
+    </div>
+    <div class="valor-item">
+      <div class="valor-nome">Integridade</div>
+      <div class="valor-desc">Honrar os compromissos assumidos, independentemente da alteração de seus resultados.</div>
+    </div>
+    <div class="valor-item">
+      <div class="valor-nome">Rendimento</div>
+      <div class="valor-desc">Trabalhar visando a rentabilidade, sem perder de vista a geração do desenvolvimento econômico e social.</div>
+    </div>
+    <div class="valor-item">
+      <div class="valor-nome">Empreendimento</div>
+      <div class="valor-desc">Ousar, criar, empreender com senso de responsabilidade.</div>
     </div>
   </div>
 </div>
 
+<div class="hero" id="controles">
+  <div class="hero-tag">Acesso restrito</div>
+  <h1 class="hero-title">Controles operacionais</h1>
+  <p class="hero-sub">Os painéis abaixo são de uso interno. Entre com seu login para acessar os controles do seu contrato.</p>
+</div>
+
+<div class="cards-section">
+  <div class="section-title" id="sec-title">Entre para acessar os módulos</div>
+  <div class="cards-grid" id="cards-grid">
+    <!-- preenchido via JS -->
+  </div>
+</div>
+
+<!-- POPUP SUPERVISOR -->
+<div class="popup-overlay" id="popup-sup">
+  <div class="popup">
+    <div class="popup-hdr">
+      <div class="popup-icon warn">⚠️</div>
+      <div class="popup-title">Você tem tratativas pendentes</div>
+      <div class="popup-sub">Responda dentro do prazo para evitar atraso.</div>
+    </div>
+    <div class="popup-body" id="popup-sup-body"></div>
+    <div class="popup-footer">
+      <button class="btn-popup-sec" onclick="fecharPopup('popup-sup')">Ver depois</button>
+      <button class="btn-popup-pri" onclick="location.href='/controles/tratativas/supervisor.html'">Responder agora</button>
+    </div>
+  </div>
+</div>
+
+<!-- POPUP GESTOR -->
+<div class="popup-overlay" id="popup-gestor">
+  <div class="popup">
+    <div class="popup-hdr">
+      <div class="popup-icon info">💬</div>
+      <div class="popup-title" id="popup-gestor-title">Respostas novas</div>
+      <div class="popup-sub" id="popup-gestor-sub"></div>
+    </div>
+    <div class="popup-body" id="popup-gestor-body"></div>
+    <div class="popup-footer">
+      <button class="btn-popup-sec" onclick="fecharPopup('popup-gestor')">Fechar</button>
+      <button class="btn-popup-pri" onclick="location.href='/controles/tratativas/index.html'">Ver na área do gestor</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL LOGIN -->
+<div class="modal-overlay" id="modal-overlay" onclick="fecharLoginFora(event)">
+  <div class="modal" style="position:relative">
+    <button class="modal-close" onclick="fecharLogin()">×</button>
+    <div class="modal-title">Acessar controles</div>
+    <div class="modal-sub">Entre com seu e-mail e senha para continuar.</div>
+    <div class="form-group">
+      <label>E-mail</label>
+      <input type="email" id="inp-email" placeholder="seu@email.com" onkeydown="if(event.key==='Enter')fazerLogin()">
+    </div>
+    <div class="form-group">
+      <label>Senha</label>
+      <input type="password" id="inp-senha" placeholder="••••••••" onkeydown="if(event.key==='Enter')fazerLogin()">
+    </div>
+    <button class="btn-login" id="btn-login" onclick="fazerLogin()">Entrar</button>
+    <div class="login-erro" id="login-erro"></div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL='https://ndwivbhqglpnfyqwjbzu.supabase.co';
+const SUPABASE_KEY='sb_publishable_IhuNziyT5VYrMKRixcPGjA_LAn5ku-7';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+const MODULOS=[
+  {id:'jornada',     titulo:'Jornada de Leituristas', desc:'Hora inicial, final, pausas e horas trabalhadas por dia.',         icon:'📋', url:'/controles/jornada/index.html'},
+  {id:'impedimentos',titulo:'Controle de Impedimentos',desc:'Impedimentos por base, local e leiturista (GBS / Cemig).',         icon:'🚧', url:'/controles/impedimentos/index.html'},
+  {id:'transmissoes',titulo:'Pendências de Transmissão',desc:'Leituras e releituras pendentes, com status de prazo.',           icon:'📡', url:'/controles/transmissoes/index.html'},
+  {id:'fotos',       titulo:'Controle de Fotos',       desc:'Solicitações e realizações de fotos por UL e leiturista.',         icon:'📷', url:'/controles/fotos/index.html'},
+  {id:'erros',       titulo:'Erros de Leitura',        desc:'Instalações com erro de leitura por mês, base e leiturista.',      icon:'⚠️', url:'/controles/erros/index.html'},
+];
+
+let usuarioLogado=null;
+
+function renderCards(perfil,relatorios){
+  const grid=document.getElementById('cards-grid');
+  const permitidos=relatorios||[];
+  document.getElementById('sec-title').textContent=
+    perfil?'Módulos disponíveis':'Entre para acessar os módulos';
+
+  if(!perfil){
+    // não logado — mostra todos bloqueados
+    grid.innerHTML=MODULOS.map(m=>`
+      <div class="card bloqueado">
+        <div class="card-top">
+          <div class="card-icon">${m.icon}</div>
+          <span class="card-lock">🔒</span>
+        </div>
+        <div class="card-title">${m.titulo}</div>
+        <div class="card-desc">${m.desc}</div>
+      </div>`).join('');
+    return;
+  }
+
+  grid.innerHTML=MODULOS.map(m=>{
+    const temAcesso=permitidos.includes(m.id);
+    if(!temAcesso) return '';
+    return `
+      <a class="card" href="${m.url}">
+        <div class="card-top">
+          <div class="card-icon">${m.icon}</div>
+        </div>
+        <div class="card-title">${m.titulo}</div>
+        <div class="card-desc">${m.desc}</div>
+      </a>`;
+  }).join('');
+
+  // card minhas tratativas para supervisores
+  if(perfil==='supervisor'){
+    grid.innerHTML+=`
+      <a class="card" href="/controles/tratativas/supervisor.html" style="border-color:#fac775;background:#fffdf5">
+        <div class="card-top">
+          <div class="card-icon" style="background:#faeeda">📋</div>
+        </div>
+        <div class="card-title">Minhas Tratativas</div>
+        <div class="card-desc">Consulte e responda as tratativas atribuídas a você.</div>
+      </a>`;
+  }
+
+  // card tratativas para gestor, gestor1, supervisor_geral
+  if(['gestor','gestor1','supervisor_geral'].includes(perfil)){
+    grid.innerHTML+=`
+      <a class="card" href="/controles/tratativas/index.html" style="border-color:#1a4a1a;background:#f4f8f4">
+        <div class="card-top">
+          <div class="card-icon" style="background:#e0f0e0">👤</div>
+        </div>
+        <div class="card-title">Área do Gestor</div>
+        <div class="card-desc">Acompanhe as tratativas dos supervisores — no prazo ou em atraso.</div>
+      </a>`;
+  }
+
+  // se gestor, mostrar também link de admin usuários
+  if(perfil==='gestor'){
+    grid.innerHTML+=`
+      <a class="card" href="admin-usuarios.html" style="border-color:#a0c8a0;background:#f8fbf8">
+        <div class="card-top">
+          <div class="card-icon">⚙️</div>
+        </div>
+        <div class="card-title">Gerenciar usuários</div>
+        <div class="card-desc">Criar logins, definir perfis, bases e permissões de acesso.</div>
+      </a>`;
+  }
+}
+
+async function carregarUsuario(){
+  const {data:{user}}=await sb.auth.getUser();
+  if(!user){renderCards(null,null);return;}
+  const {data:up}=await sb.from('usuarios_portal').select('*').eq('id',user.id).single();
+  if(!up||!up.ativo){await sb.auth.signOut();renderCards(null,null);return;}
+  usuarioLogado=up;
+  document.getElementById('hdr-user').textContent=up.nome;
+  document.getElementById('hdr-user').classList.remove('hidden');
+  document.getElementById('btn-sair').classList.remove('hidden');
+  document.getElementById('btn-entrar').classList.add('hidden');
+  renderCards(up.perfil, up.relatorios||[]);
+  await verificarPopups(up, user.id);
+}
+
+function abrirLogin(){
+  document.getElementById('modal-overlay').classList.add('vis');
+  setTimeout(()=>document.getElementById('inp-email').focus(),100);
+}
+function fecharLogin(){document.getElementById('modal-overlay').classList.remove('vis');}
+function fecharLoginFora(e){if(e.target===document.getElementById('modal-overlay'))fecharLogin();}
+
+async function fazerLogin(){
+  const email=document.getElementById('inp-email').value.trim();
+  const senha=document.getElementById('inp-senha').value;
+  const erro=document.getElementById('login-erro');
+  const btn=document.getElementById('btn-login');
+  if(!email||!senha){erro.textContent='Preencha e-mail e senha.';return;}
+  btn.disabled=true;btn.textContent='Entrando...';erro.textContent='';
+  const {error}=await sb.auth.signInWithPassword({email,password:senha});
+  if(error){
+    erro.textContent='E-mail ou senha incorretos.';
+    btn.disabled=false;btn.textContent='Entrar';
+    return;
+  }
+  const {data:{user}}=await sb.auth.getUser();
+  if(user){
+    await sb.from('usuarios_portal').update({last_login:new Date().toISOString()}).eq('id',user.id);
+  }
+  if(window.gbsMarcarLogin) window.gbsMarcarLogin();
+  fecharLogin();
+  await carregarUsuario();
+}
+
+function fecharPopup(id){document.getElementById(id).classList.remove('vis');}
+
+async function verificarPopups(up, userId){
+  const hoje=new Date(); hoje.setHours(0,0,0,0);
+  const perfil=up.perfil;
+  if(perfil==='supervisor'){
+    const {data:trats}=await sb.from('tratativas').select('id,tipo,detalhe,prazo_resposta').eq('supervisor_id',userId).eq('respondida',false);
+    if(!trats||!trats.length) return;
+    const TIPO={'impedimentos':'Impedimentos','erros':'Erros leitura','meta':'Meta leituras','inicio_tardio':'Início tardio','manual':'Manual'};
+    document.getElementById('popup-sup-body').innerHTML=trats.map(t=>{
+      const atrasada=new Date(t.prazo_resposta)<hoje;
+      const amanha=new Date(t.prazo_resposta).toDateString()===new Date(Date.now()+86400000).toDateString();
+      const cor=atrasada?'dot-r':amanha?'dot-a':'dot-b';
+      const label=atrasada?'Atrasada':amanha?'Vence amanhã':'Aberta';
+      const bc=atrasada?'#fcebeb':amanha?'#faeeda':'#e6f1fb';
+      const tc=atrasada?'#791f1f':amanha?'#633806':'#0c447c';
+      return `<div class="popup-item"><div class="popup-dot ${cor}"></div><div class="popup-item-txt">${TIPO[t.tipo]||t.tipo} <span style="background:${bc};color:${tc};padding:1px 6px;border-radius:6px;font-size:10px">${label}</span><span>${t.detalhe||'—'} · prazo ${new Date(t.prazo_resposta+'T12:00:00').toLocaleDateString('pt-BR')}</span></div></div>`;
+    }).join('');
+    document.getElementById('popup-sup').classList.add('vis');
+  } else if(['gestor','gestor1','supervisor_geral'].includes(perfil)){
+    const {data:ua}=await sb.from('usuarios_ultimo_acesso').select('ultimo_acesso').eq('user_id',userId).single();
+    const ultimoAcesso=ua?.ultimo_acesso?new Date(ua.ultimo_acesso):new Date(0);
+    await sb.from('usuarios_ultimo_acesso').upsert({user_id:userId,ultimo_acesso:new Date().toISOString()});
+    const {data:trats}=await sb.from('tratativas').select('supervisor_nome,tipo,detalhe,respondida_em').eq('respondida',true).gt('respondida_em',ultimoAcesso.toISOString()).order('respondida_em',{ascending:false});
+    if(!trats||!trats.length) return;
+    const TIPO={'impedimentos':'Impedimentos','erros':'Erros leitura','meta':'Meta leituras','inicio_tardio':'Início tardio','manual':'Manual'};
+    document.getElementById('popup-gestor-title').textContent=`${trats.length} resposta(s) nova(s) desde seu último acesso`;
+    document.getElementById('popup-gestor-sub').textContent=[...new Set(trats.map(t=>t.supervisor_nome))].join(', ');
+    document.getElementById('popup-gestor-body').innerHTML=trats.map(t=>`<div class="popup-item"><div class="popup-dot dot-b"></div><div class="popup-item-txt">${t.supervisor_nome||'—'}<span>${TIPO[t.tipo]||t.tipo} · ${t.detalhe||'—'} · ${new Date(t.respondida_em).toLocaleString('pt-BR')}</span></div></div>`).join('');
+    document.getElementById('popup-gestor').classList.add('vis');
+  }
+}
+
+async function sair(){
+  await sb.auth.signOut();
+  usuarioLogado=null;
+  document.getElementById('hdr-user').classList.add('hidden');
+  document.getElementById('btn-sair').classList.add('hidden');
+  document.getElementById('btn-entrar').classList.remove('hidden');
+  document.getElementById('gestor-banner').classList.add('hidden');
+  renderCards(null,null);
+}
+
+carregarUsuario();
+</script>
+<script src="/controles/auto-logout.js"></script>
 </body>
 </html>
