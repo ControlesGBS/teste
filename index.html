@@ -83,20 +83,7 @@ body{font-family:system-ui,sans-serif;background:#f4f6f4;color:#1a2a1a;min-heigh
 .popup-item-txt span{color:#4a7a4a;font-size:11px;display:block;margin-top:1px}
 .popup-footer{padding:12px 18px;border-top:0.5px solid #e0eee0;display:flex;gap:8px;justify-content:flex-end}
 .btn-popup-pri{background:#2d7a2d;color:#fff;border:none;border-radius:6px;padding:7px 18px;font-size:12px;font-weight:500;cursor:pointer}
-/* SEÇÃO EMPRESA */
-.empresa-section{padding:48px 32px;max-width:1100px;background:#fff}
-.empresa-tag{font-size:11px;font-weight:500;color:#2d7a2d;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
-.empresa-title{font-size:28px;font-weight:500;color:#1a2a1a;margin-bottom:8px;line-height:1.2}
-.empresa-banner{font-size:16px;font-style:italic;color:#4a7a4a;margin-bottom:32px;line-height:1.5}
-.empresa-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;margin-bottom:32px}
-.empresa-card{background:#f8fbf8;border:0.5px solid #c0dcc0;border-radius:12px;padding:22px}
-.empresa-card-title{font-size:13px;font-weight:600;color:#2d7a2d;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
-.empresa-card-txt{font-size:14px;color:#1a2a1a;line-height:1.6}
-.valores-title{font-size:13px;font-weight:500;color:#4a7a4a;text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;padding-bottom:6px;border-bottom:0.5px solid #c0dcc0}
-.valores-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
-.valor-item{padding:16px;background:#f8fbf8;border-radius:10px;border-left:3px solid #2d7a2d}
-.valor-nome{font-size:14px;font-weight:600;color:#1a4a1a;margin-bottom:5px}
-.valor-desc{font-size:13px;color:#4a7a4a;line-height:1.5}
+.btn-popup-sec{background:none;border:0.5px solid #c0dcc0;color:#4a7a4a;border-radius:6px;padding:7px 18px;font-size:12px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -107,7 +94,7 @@ body{font-family:system-ui,sans-serif;background:#f4f6f4;color:#1a2a1a;min-heigh
     <span class="hdr-logo-txt">GBS Serviços</span>
   </a>
   <nav class="hdr-nav">
-    <a href="#empresa">A empresa</a>
+    <a href="#">A empresa</a>
     <a href="#">Segurança</a>
     <a href="#controles">Controles</a>
   </nav>
@@ -115,51 +102,6 @@ body{font-family:system-ui,sans-serif;background:#f4f6f4;color:#1a2a1a;min-heigh
     <span class="hdr-user hidden" id="hdr-user"></span>
     <button class="btn-sair hidden" id="btn-sair" onclick="sair()">Sair</button>
     <button class="btn-entrar" id="btn-entrar" onclick="abrirLogin()">Entrar</button>
-  </div>
-</div>
-
-<div class="empresa-section" id="empresa">
-  <div class="empresa-tag">A empresa</div>
-  <div class="empresa-title">GBS Serviços Empresariais</div>
-  <div class="empresa-banner">"GBS, Qualidade com Segurança é o nosso forte!"</div>
-
-  <div class="empresa-grid">
-    <div class="empresa-card">
-      <div class="empresa-card-title">Negócio</div>
-      <div class="empresa-card-txt">Satisfazer a demanda na prestação de serviços com qualidade e segurança.</div>
-    </div>
-    <div class="empresa-card">
-      <div class="empresa-card-title">Visão</div>
-      <div class="empresa-card-txt">Ser referência na prestação de serviços.</div>
-    </div>
-    <div class="empresa-card">
-      <div class="empresa-card-title">Missão</div>
-      <div class="empresa-card-txt">Ser líder no setor, atuando com segurança, eficiência e responsabilidade social, buscando o crescimento contínuo de nossos colaboradores e assegurando a plena satisfação de nossos clientes.</div>
-    </div>
-  </div>
-
-  <div class="valores-title">Nossos valores</div>
-  <div class="valores-grid">
-    <div class="valor-item">
-      <div class="valor-nome">Saúde e Segurança</div>
-      <div class="valor-desc">Inspirar, provocar e ser um guia essencial para que todos os colaboradores tenham saúde e segurança não apenas na empresa, mas como um princípio de vida.</div>
-    </div>
-    <div class="valor-item">
-      <div class="valor-nome">Ética</div>
-      <div class="valor-desc">Agir com ética e dignidade, mantendo sempre a coerência.</div>
-    </div>
-    <div class="valor-item">
-      <div class="valor-nome">Integridade</div>
-      <div class="valor-desc">Honrar os compromissos assumidos, independentemente da alteração de seus resultados.</div>
-    </div>
-    <div class="valor-item">
-      <div class="valor-nome">Rendimento</div>
-      <div class="valor-desc">Trabalhar visando a rentabilidade, sem perder de vista a geração do desenvolvimento econômico e social.</div>
-    </div>
-    <div class="valor-item">
-      <div class="valor-nome">Empreendimento</div>
-      <div class="valor-desc">Ousar, criar, empreender com senso de responsabilidade.</div>
-    </div>
   </div>
 </div>
 
