@@ -271,11 +271,11 @@ async function carregarUsuario(){
   document.getElementById('btn-sair').classList.remove('hidden');
   document.getElementById('btn-entrar').classList.add('hidden');
   renderCards(up.perfil, up.relatorios||[]);
-  carregarIndicadoresVivos();
+  carregarIndicadoresVivos(up.base||null);
   await verificarPopups(up, user.id);
 }
 
-async function carregarIndicadoresVivos(){
+async function carregarIndicadoresVivos(baseUsuario){
   const hoje=new Date();
   const yyyy=hoje.getFullYear(), mm=String(hoje.getMonth()+1).padStart(2,'0');
   const mesRef01=`${yyyy}-${mm}-01`;
@@ -289,24 +289,32 @@ async function carregarIndicadoresVivos(){
     el.className='card-badge '+(cor||'');
   };
 
-  // Impedimentos — só responsabilidade GBS, do mês atual (tenta yyyy-mm-01, depois yyyy-mm)
+  // Impedimentos — só responsabilidade GBS, do mês atual, restrito à base do supervisor se houver
   (async()=>{
     try{
-      let {count}=await sb.from('impedimentos').select('*',{count:'exact',head:true}).eq('mes_ref',mesRef01).ilike('responsabilidade','GBS');
-      if(!count){ ({count}=await sb.from('impedimentos').select('*',{count:'exact',head:true}).eq('mes_ref',mesRefSemDia).ilike('responsabilidade','GBS')); }
+      let q=sb.from('impedimentos').select('*',{count:'exact',head:true}).eq('mes_ref',mesRef01).ilike('responsabilidade','GBS');
+      if(baseUsuario) q=q.ilike('base',baseUsuario);
+      let {count}=await q;
+      if(!count){
+        let q2=sb.from('impedimentos').select('*',{count:'exact',head:true}).eq('mes_ref',mesRefSemDia).ilike('responsabilidade','GBS');
+        if(baseUsuario) q2=q2.ilike('base',baseUsuario);
+        ({count}=await q2);
+      }
       setBadge('impedimentos', count||0, count?'cor-vermelho':null, 'GBS');
     }catch(e){ setBadge('impedimentos', null); }
   })();
 
-  // ULs com leitura pendente no mês (mesma regra do módulo: rota_tipo LEITURA e pendência > 0)
+  // ULs com leitura pendente no mês (mesma regra do módulo: rota_tipo LEITURA e pendência > 0), restrito à base se houver
   (async()=>{
     try{
       const ulsPend=new Set();
       let from=0;
       while(true){
-        const {data:lote}=await sb.from('transmissoes')
+        let q=sb.from('transmissoes')
           .select('ul,rota_tipo,a_executar,exec_100,exec_30,telemetria')
-          .eq('mes_ref',mesRef01).range(from,from+999);
+          .eq('mes_ref',mesRef01);
+        if(baseUsuario) q=q.ilike('base',baseUsuario);
+        const {data:lote}=await q.range(from,from+999);
         if(!lote||!lote.length) break;
         lote.forEach(r=>{
           if(r.rota_tipo!=='LEITURA') return;
@@ -320,18 +328,22 @@ async function carregarIndicadoresVivos(){
     }catch(e){ setBadge('ul_pendentes', null); }
   })();
 
-  // Releituras pendentes do mês
+  // Releituras pendentes do mês, restrito à base se houver
   (async()=>{
     try{
-      const {count}=await sb.from('releituras').select('*',{count:'exact',head:true}).eq('mes_ref',mesRef01);
+      let q=sb.from('releituras').select('*',{count:'exact',head:true}).eq('mes_ref',mesRef01);
+      if(baseUsuario) q=q.ilike('base',baseUsuario);
+      const {count}=await q;
       setBadge('transmissoes', count||0, count?'cor-amber':null, 'releituras');
     }catch(e){ setBadge('transmissoes', null); }
   })();
 
-  // Erros de leitura do mês
+  // Erros de leitura do mês, restrito à base se houver
   (async()=>{
     try{
-      const {count}=await sb.from('erros').select('*',{count:'exact',head:true}).eq('mes_erro',mesRef01);
+      let q=sb.from('erros').select('*',{count:'exact',head:true}).eq('mes_erro',mesRef01);
+      if(baseUsuario) q=q.ilike('base',baseUsuario);
+      const {count}=await q;
       setBadge('erros', count||0, count?'cor-amber':null, 'erros');
     }catch(e){ setBadge('erros', null); }
   })();
