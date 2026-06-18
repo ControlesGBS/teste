@@ -176,10 +176,10 @@ const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 const MODULOS=[
   {id:'jornada',     titulo:'Jornada de Leituristas', desc:'Hora inicial, final, pausas e horas trabalhadas por dia.',         icon:'📋', url:'/controles/jornada/index.html'},
-  {id:'impedimentos',titulo:'Controle de Impedimentos',desc:'Impedimentos por base, local e leiturista (GBS / Cemig).',         icon:'🚧', url:'/controles/impedimentos/index.html', badge:'impedimentos'},
-  {id:'transmissoes',titulo:'Pendências de Transmissão',desc:'Leituras e releituras pendentes, com status de prazo.',           icon:'📡', url:'/controles/transmissoes/index.html', badge:'transmissoes'},
+  {id:'impedimentos',titulo:'Controle de Impedimentos',desc:'Impedimentos por base, local e leiturista (GBS / Cemig).',         icon:'🚧', url:'/controles/impedimentos/index.html', badges:['impedimentos']},
+  {id:'transmissoes',titulo:'Pendências de Transmissão',desc:'Leituras e releituras pendentes, com status de prazo.',           icon:'📡', url:'/controles/transmissoes/index.html', badges:['ul_pendentes','releituras']},
   {id:'fotos',       titulo:'Controle de Fotos',       desc:'Solicitações e realizações de fotos por UL e leiturista.',         icon:'📷', url:'/controles/fotos/index.html'},
-  {id:'erros',       titulo:'Erros de Leitura',        desc:'Instalações com erro de leitura por mês, base e leiturista.',      icon:'⚠️', url:'/controles/erros/index.html', badge:'erros'},
+  {id:'erros',       titulo:'Erros de Leitura',        desc:'Instalações com erro de leitura por mês, base e leiturista.',      icon:'⚠️', url:'/controles/erros/index.html', badges:['erros']},
 ];
 
 let usuarioLogado=null;
@@ -211,7 +211,7 @@ function renderCards(perfil,relatorios){
       <a class="card" href="${m.url}">
         <div class="card-top">
           <div class="card-icon">${m.icon}</div>
-          ${m.badge?`<span class="card-badge carregando" id="badge-${m.badge}">···</span>`:''}
+          ${m.badges?`<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">${m.badges.map(b=>`<span class="card-badge carregando" id="badge-${b}">···</span>`).join('')}</div>`:''}
         </div>
         <div class="card-title">${m.titulo}</div>
         <div class="card-desc">${m.desc}</div>
@@ -289,13 +289,35 @@ async function carregarIndicadoresVivos(){
     el.className='card-badge '+(cor||'');
   };
 
-  // Impedimentos — total do mês (tenta yyyy-mm-01, depois yyyy-mm)
+  // Impedimentos — só responsabilidade GBS, do mês atual (tenta yyyy-mm-01, depois yyyy-mm)
   (async()=>{
     try{
-      let {count}=await sb.from('impedimentos').select('*',{count:'exact',head:true}).eq('mes_ref',mesRef01);
-      if(!count){ ({count}=await sb.from('impedimentos').select('*',{count:'exact',head:true}).eq('mes_ref',mesRefSemDia)); }
-      setBadge('impedimentos', count||0, count?'cor-vermelho':null, 'este mês');
+      let {count}=await sb.from('impedimentos').select('*',{count:'exact',head:true}).eq('mes_ref',mesRef01).ilike('responsabilidade','GBS');
+      if(!count){ ({count}=await sb.from('impedimentos').select('*',{count:'exact',head:true}).eq('mes_ref',mesRefSemDia).ilike('responsabilidade','GBS')); }
+      setBadge('impedimentos', count||0, count?'cor-vermelho':null, 'GBS');
     }catch(e){ setBadge('impedimentos', null); }
+  })();
+
+  // ULs com leitura pendente no mês (mesma regra do módulo: rota_tipo LEITURA e pendência > 0)
+  (async()=>{
+    try{
+      const ulsPend=new Set();
+      let from=0;
+      while(true){
+        const {data:lote}=await sb.from('transmissoes')
+          .select('ul,rota_tipo,a_executar,exec_100,exec_30,telemetria')
+          .eq('mes_ref',mesRef01).range(from,from+999);
+        if(!lote||!lote.length) break;
+        lote.forEach(r=>{
+          if(r.rota_tipo!=='LEITURA') return;
+          const pend=(r.a_executar||0)-(r.exec_100||0)-(r.exec_30||0)-(r.telemetria||0);
+          if(pend>0) ulsPend.add(r.ul);
+        });
+        if(lote.length<1000) break;
+        from+=1000;
+      }
+      setBadge('ul_pendentes', ulsPend.size, ulsPend.size?'cor-vermelho':null, 'ULs pendentes');
+    }catch(e){ setBadge('ul_pendentes', null); }
   })();
 
   // Releituras pendentes do mês
