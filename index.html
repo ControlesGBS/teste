@@ -255,8 +255,13 @@ function renderCards(perfil,relatorios){
 }
 
 async function carregarUsuario(){
+  const params=new URLSearchParams(location.search);
+  if(params.get('logout')==='1'){
+    await sb.auth.signOut();
+    history.replaceState({},'',location.pathname);
+  }
   const {data:{user}}=await sb.auth.getUser();
-  if(!user){renderCards(null,null);return;}
+  if(!user){renderCards(null,null);abrirLogin();return;}
   const {data:up}=await sb.from('usuarios_portal').select('*').eq('id',user.id).single();
   if(!up||!up.ativo){await sb.auth.signOut();renderCards(null,null);return;}
   usuarioLogado=up;
