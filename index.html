@@ -384,7 +384,10 @@ async function verificarPopups(up, userId){
   const hoje=new Date(); hoje.setHours(0,0,0,0);
   const perfil=up.perfil;
   if(perfil==='supervisor'){
-    const {data:trats}=await sb.from('tratativas').select('id,tipo,detalhe,prazo_resposta').eq('supervisor_id',userId).eq('respondida',false);
+    let q=sb.from('tratativas').select('id,tipo,detalhe,prazo_resposta').eq('respondida',false);
+    if(up.base) q=q.filter('base','ilike',up.base);
+    else q=q.eq('supervisor_id',userId);
+    const {data:trats}=await q;
     if(!trats||!trats.length) return;
     const TIPO={'impedimentos':'Impedimentos','erros':'Erros leitura','meta':'Meta leituras','inicio_tardio':'Início tardio','manual':'Manual'};
     document.getElementById('popup-sup-body').innerHTML=trats.map(t=>{
