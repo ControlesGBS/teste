@@ -41,6 +41,9 @@ tbody td{padding:9px 10px;border-bottom:0.5px solid #e0eee0;vertical-align:middl
 .bp-gestor{background:#eeedfe;color:#3c3489}
 .bp-supervisor{background:#e6f1fb;color:#0c447c}
 .bp-auxiliar{background:#faeeda;color:#633806}
+.bp-gestor1{background:#e0d4fa;color:#5b21a8}
+.bp-supgeral{background:#fde8e8;color:#9b1c1c}
+.bp-tecseg{background:#eaf3de;color:#27500a}
 .badge-ativo{display:inline-block;padding:3px 10px;border-radius:8px;font-size:14px;font-weight:500}
 .ba-sim{background:#eaf3de;color:#27500a}
 .ba-nao{background:#fcebeb;color:#791f1f}
@@ -93,6 +96,10 @@ tbody td{padding:9px 10px;border-bottom:0.5px solid #e0eee0;vertical-align:middl
             <option value="supervisor">Supervisor</option>
             <option value="auxiliar">Auxiliar</option>
             <option value="gestor">Gestor</option>
+            <option value="gestor1">Gestor1</option>
+            <option value="supervisor_geral">Supervisor Geral</option>
+            <option value="tst_passos">TST - Passos</option>
+            <option value="tst_pouso_alegre">TST - Pouso Alegre</option>
           </select>
         </div>
         <div class="form-group" id="grp-base">
@@ -171,6 +178,10 @@ tbody td{padding:9px 10px;border-bottom:0.5px solid #e0eee0;vertical-align:middl
           <option value="supervisor">Supervisor</option>
           <option value="auxiliar">Auxiliar</option>
           <option value="gestor">Gestor</option>
+          <option value="gestor1">Gestor1</option>
+          <option value="supervisor_geral">Supervisor Geral</option>
+          <option value="tst_passos">TST - Passos</option>
+          <option value="tst_pouso_alegre">TST - Pouso Alegre</option>
         </select>
       </div>
       <div class="form-group" id="e-grp-base">
@@ -221,20 +232,21 @@ const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
   carregarUsuarios();
 })();
 
+const SEM_BASE=['gestor','gestor1','supervisor_geral','tst_passos','tst_pouso_alegre'];
 function atualizarBase(){
   const p=document.getElementById('n-perfil').value;
-  document.getElementById('grp-base').style.display=p==='gestor'?'none':'flex';
+  document.getElementById('grp-base').style.display=SEM_BASE.includes(p)?'none':'flex';
 }
 function atualizarBaseEdit(){
   const p=document.getElementById('e-perfil').value;
-  document.getElementById('e-grp-base').style.display=p==='gestor'?'none':'flex';
+  document.getElementById('e-grp-base').style.display=SEM_BASE.includes(p)?'none':'flex';
 }
 
 async function carregarUsuarios(){
   const {data}=await sb.from('usuarios_portal').select('*').order('nome');
   document.getElementById('count-users').textContent=`${(data||[]).length} usuário(s)`;
-  const LABEL={gestor:'Gestor',supervisor:'Supervisor',auxiliar:'Auxiliar'};
-  const CLASSE={gestor:'bp-gestor',supervisor:'bp-supervisor',auxiliar:'bp-auxiliar'};
+  const LABEL={gestor:'Gestor',supervisor:'Supervisor',auxiliar:'Auxiliar',gestor1:'Gestor1',supervisor_geral:'Supervisor Geral',tst_passos:'TST - Passos',tst_pouso_alegre:'TST - Pouso Alegre'};
+  const CLASSE={gestor:'bp-gestor',supervisor:'bp-supervisor',auxiliar:'bp-auxiliar',gestor1:'bp-gestor1',supervisor_geral:'bp-supgeral',tst_passos:'bp-tecseg',tst_pouso_alegre:'bp-tecseg'};
   document.getElementById('tbody-users').innerHTML=(data||[]).map(u=>`
     <tr>
       <td><strong>${u.nome}</strong></td>
