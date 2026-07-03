@@ -124,6 +124,7 @@ tbody td{padding:9px 10px;border-bottom:0.5px solid #e0eee0;vertical-align:middl
             <label class="cb-item"><input type="checkbox" value="fotos" checked> Fotos</label>
             <label class="cb-item"><input type="checkbox" value="erros" checked> Erros</label>
             <label class="cb-item"><input type="checkbox" value="velocidade" checked> Velocidade</label>
+            <label class="cb-item"><input type="checkbox" value="tratativas"> Tratativas</label>
           </div>
         </div>
       </div>
@@ -210,6 +211,7 @@ tbody td{padding:9px 10px;border-bottom:0.5px solid #e0eee0;vertical-align:middl
           <label class="cb-item"><input type="checkbox" value="fotos"> Fotos</label>
           <label class="cb-item"><input type="checkbox" value="erros"> Erros</label>
           <label class="cb-item"><input type="checkbox" value="velocidade"> Velocidade</label>
+          <label class="cb-item"><input type="checkbox" value="tratativas"> Tratativas</label>
         </div>
       </div>
     </div>
@@ -263,6 +265,18 @@ async function carregarUsuarios(){
     </tr>`).join('');
 }
 
+const EDGE_FN_URL = `${SUPABASE_URL}/functions/v1/admin-usuarios`;
+
+async function chamarAdminFn(payload){
+  const {data:{session}}=await sb.auth.getSession();
+  const resp=await fetch(EDGE_FN_URL,{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':`Bearer ${session?.access_token||''}`},
+    body:JSON.stringify(payload)
+  });
+  return resp.json();
+}
+
 async function criarUsuario(){
   const nome=document.getElementById('n-nome').value.trim();
   const email=document.getElementById('n-email').value.trim();
@@ -278,21 +292,10 @@ async function criarUsuario(){
 
   btn.disabled=true;msg.textContent='Criando...';msg.className='msg-criar';
 
-  // Criar no Auth via Admin API usando service role — não disponível no client
-  // Usamos signup normal e confirmamos via SQL depois
-  const {data,error}=await sb.auth.admin.createUser({
-    email,password:senha,email_confirm:true,
-    user_metadata:{nome}
-  });
+  const resultado=await chamarAdminFn({action:'create_user',nome,email,senha,perfil,base,relatorios:rels});
 
-  if(error){
-    // fallback: signUp normal
-    const {data:d2,error:e2}=await sb.auth.signUp({email,password:senha});
-    if(e2){msg.className='msg-criar erro';msg.textContent='Erro: '+e2.message;btn.disabled=false;return;}
-    if(!d2.user){msg.className='msg-criar erro';msg.textContent='Não foi possível criar o usuário.';btn.disabled=false;return;}
-    await sb.from('usuarios_portal').insert({id:d2.user.id,nome,email,perfil,base,relatorios:rels,ativo:true});
-  } else {
-    await sb.from('usuarios_portal').insert({id:data.user.id,nome,email,perfil,base,relatorios:rels,ativo:true});
+  if(resultado.error){
+    msg.className='msg-criar erro';msg.textContent='Erro: '+resultado.error;btn.disabled=false;return;
   }
 
   msg.className='msg-criar ok';msg.textContent=`✓ Usuário ${nome} criado com sucesso!`;
@@ -338,26 +341,18 @@ async function salvarEdicao(){
   if(senha&&senha.length<6){msg.className='msg-edit erro';msg.textContent='Senha mínima de 6 caracteres.';return;}
   btn.disabled=true;msg.textContent='Salvando...';msg.className='msg-edit';
 
-  // Atualizar tabela usuarios_portal
-  const {error}=await sb.from('usuarios_portal').update({nome,email,perfil,base,relatorios:rels}).eq('id',id);
-  if(error){msg.className='msg-edit erro';msg.textContent='Erro ao salvar.';btn.disabled=false;return;}
+  const resultado=await chamarAdminFn({action:'update_user',id,nome,email,emailAtual,perfil,base,relatorios:rels,senha});
 
-  // Atualizar email no Auth se mudou
-  if(email!==emailAtual){
-    const {error:e2}=await sb.auth.admin.updateUserById(id,{email});
-    if(e2) console.warn('Erro ao atualizar email no Auth:',e2.message);
+  if(resultado.error){
+    msg.className='msg-edit erro';msg.textContent='Erro: '+resultado.error;btn.disabled=false;return;
   }
 
-  // Atualizar senha se preenchida
-  if(senha){
-    const {error:e3}=await sb.auth.admin.updateUserById(id,{password:senha});
-    if(e3){
-      msg.className='msg-edit erro';
-      msg.textContent='Dados salvos mas erro ao alterar senha: '+e3.message;
-      btn.disabled=false;
-      carregarUsuarios();
-      return;
-    }
+  if(resultado.avisos&&resultado.avisos.length){
+    msg.className='msg-edit erro';
+    msg.textContent='Dados salvos, mas: '+resultado.avisos.join('; ');
+    btn.disabled=false;
+    carregarUsuarios();
+    return;
   }
 
   msg.className='msg-edit ok';msg.textContent='✓ Salvo com sucesso!';
