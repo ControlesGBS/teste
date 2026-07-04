@@ -97,7 +97,7 @@ body{font-family:system-ui,sans-serif;background:#f4f6f4;color:#1a2a1a;min-heigh
     <img src="../jornada/logo_gbs.png" alt="GBS" style="height:36px" onerror="this.style.display='none'">
     <span class="hdr-logo-txt">GBS Serviços</span>
   </a>
-  <button onclick="location.href='/controles/portal/index.html'" title="Voltar à página principal" style="background:none;border:none;font-size:18px;cursor:pointer;color:#90c090;padding:4px 8px">🏠</button>
+  <button onclick="location.href='/controles'" title="Voltar à página principal" style="background:none;border:none;font-size:18px;cursor:pointer;color:#90c090;padding:4px 8px">🏠</button>
   <div class="hdr-actions">
     <span class="hdr-user hidden" id="hdr-user"></span>
     <button class="btn-sair hidden" id="btn-sair" onclick="sair()">Sair</button>
@@ -145,7 +145,7 @@ body{font-family:system-ui,sans-serif;background:#f4f6f4;color:#1a2a1a;min-heigh
     <div class="popup-body" id="popup-gestor-body"></div>
     <div class="popup-footer">
       <button class="btn-popup-sec" onclick="fecharPopup('popup-gestor')">Fechar</button>
-      <button class="btn-popup-pri" onclick="location.href='/controles/tratativas/index.html'">Ver na área do gestor</button>
+      <button class="btn-popup-pri" onclick="location.href='/controles/tratativas/'">Ver na área do gestor</button>
     </div>
   </div>
 </div>
@@ -175,12 +175,12 @@ const SUPABASE_KEY='sb_publishable_IhuNziyT5VYrMKRixcPGjA_LAn5ku-7';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 const MODULOS=[
-  {id:'jornada',     titulo:'Jornada de Leituristas', desc:'Hora inicial, final, pausas e horas trabalhadas por dia.',         icon:'📋', url:'/controles/jornada/index.html'},
-  {id:'impedimentos',titulo:'Controle de Impedimentos',desc:'Impedimentos por base, local e leiturista (GBS / Cemig).',         icon:'🚧', url:'/controles/impedimentos/index.html', badges:['impedimentos']},
-  {id:'transmissoes',titulo:'Pendências de Transmissão',desc:'Leituras e releituras pendentes, com status de prazo.',           icon:'📡', url:'/controles/transmissoes/index.html', badges:['ul_pendentes','releituras']},
-  {id:'fotos',       titulo:'Controle de Fotos',       desc:'Solicitações e realizações de fotos por UL e leiturista.',         icon:'📷', url:'/controles/fotos/index.html'},
-  {id:'erros',       titulo:'Erros de Leitura',        desc:'Instalações com erro de leitura por mês, base e leiturista.',      icon:'⚠️', url:'/controles/erros/index.html', badges:['erros']},
-  {id:'velocidade',  titulo:'Gestão de Velocidade',     desc:'Infrações de excesso de velocidade por condutor e base.',          icon:'🚗', url:'/controles/velocidade/index.html'},
+  {id:'jornada',     titulo:'Jornada de Leituristas', desc:'Hora inicial, final, pausas e horas trabalhadas por dia.',         icon:'📋', url:'/controles/jornada/'},
+  {id:'impedimentos',titulo:'Controle de Impedimentos',desc:'Impedimentos por base, local e leiturista (GBS / Cemig).',         icon:'🚧', url:'/controles/impedimentos/', badges:['impedimentos']},
+  {id:'transmissoes',titulo:'Pendências de Transmissão',desc:'Leituras e releituras pendentes, com status de prazo.',           icon:'📡', url:'/controles/transmissoes/', badges:['ul_pendentes','releituras']},
+  {id:'fotos',       titulo:'Controle de Fotos',       desc:'Solicitações e realizações de fotos por UL e leiturista.',         icon:'📷', url:'/controles/fotos/'},
+  {id:'erros',       titulo:'Erros de Leitura',        desc:'Instalações com erro de leitura por mês, base e leiturista.',      icon:'⚠️', url:'/controles/erros/', badges:['erros']},
+  {id:'velocidade',  titulo:'Gestão de Velocidade',     desc:'Infrações de excesso de velocidade por condutor e base.',          icon:'🚗', url:'/controles/velocidade/'},
 ];
 
 let usuarioLogado=null;
@@ -234,7 +234,7 @@ function renderCards(perfil,relatorios){
   // card tratativas para gestor, gestor1, supervisor_geral
   if(['gestor','gestor1','supervisor_geral'].includes(perfil)){
     grid.innerHTML+=`
-      <a class="card" href="/controles/tratativas/index.html" style="border-left-color:#1a4a1a;background:#f4f8f4">
+      <a class="card" href="/controles/tratativas/" style="border-left-color:#1a4a1a;background:#f4f8f4">
         <div class="card-top">
           <div class="card-icon" style="background:#e0f0e0">👤</div>
         </div>
