@@ -399,7 +399,7 @@ async function verificarPopups(up, userId){
     else q=q.eq('supervisor_id',userId);
     const {data:trats}=await q;
     if(!trats||!trats.length) return;
-    const TIPO={'impedimentos':'Impedimentos','erros':'Erros leitura','meta':'Meta leituras','inicio_tardio':'Início tardio','manual':'Manual','velocidade':'Excesso de Velocidade'};
+    const TIPO={'impedimentos':'Impedimentos','erros':'Erros leitura','meta':'Meta leituras','inicio_tardio':'Início tardio','termino_tardio':'Término tardio','alerta_horario':'Verificar alerta de horário','manual':'Manual','velocidade':'Excesso de Velocidade'};
     document.getElementById('popup-sup-body').innerHTML=trats.map(t=>{
       const atrasada=new Date(t.prazo_resposta)<hoje;
       const amanha=new Date(t.prazo_resposta).toDateString()===new Date(Date.now()+86400000).toDateString();
@@ -416,7 +416,7 @@ async function verificarPopups(up, userId){
     await sb.from('usuarios_ultimo_acesso').upsert({user_id:userId,ultimo_acesso:new Date().toISOString()});
     const {data:trats}=await sb.from('tratativas').select('supervisor_nome,tipo,detalhe,respondida_em').eq('respondida',true).gt('respondida_em',ultimoAcesso.toISOString()).order('respondida_em',{ascending:false});
     if(!trats||!trats.length) return;
-    const TIPO={'impedimentos':'Impedimentos','erros':'Erros leitura','meta':'Meta leituras','inicio_tardio':'Início tardio','manual':'Manual'};
+    const TIPO={'impedimentos':'Impedimentos','erros':'Erros leitura','meta':'Meta leituras','inicio_tardio':'Início tardio','termino_tardio':'Término tardio','alerta_horario':'Verificar alerta de horário','manual':'Manual'};
     document.getElementById('popup-gestor-title').textContent=`${trats.length} resposta(s) nova(s) desde seu último acesso`;
     document.getElementById('popup-gestor-sub').textContent=[...new Set(trats.map(t=>t.supervisor_nome))].join(', ');
     document.getElementById('popup-gestor-body').innerHTML=trats.map(t=>`<div class="popup-item"><div class="popup-dot dot-b"></div><div class="popup-item-txt">${t.supervisor_nome||'—'}<span>${TIPO[t.tipo]||t.tipo} · ${t.detalhe||'—'} · ${new Date(t.respondida_em).toLocaleString('pt-BR')}</span></div></div>`).join('');
