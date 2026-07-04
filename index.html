@@ -219,8 +219,8 @@ function renderCards(perfil,relatorios){
       </a>`;
   }).join('');
 
-  // card minhas tratativas para supervisores
-  if(perfil==='supervisor'){
+  // card minhas tratativas para supervisores e TSTs
+  if(['supervisor','tst_passos','tst_pouso_alegre'].includes(perfil)){
     grid.innerHTML+=`
       <a class="card" href="/controles/tratativas/supervisor.html" style="border-left-color:#fac775;background:#fffdf5">
         <div class="card-top">
@@ -384,13 +384,18 @@ function fecharPopup(id){document.getElementById(id).classList.remove('vis');}
 async function verificarPopups(up, userId){
   const hoje=new Date(); hoje.setHours(0,0,0,0);
   const perfil=up.perfil;
-  if(perfil==='supervisor'){
+  const TST_BASES={
+    'tst_passos':['Guaxupé','Passos','SSP'],
+    'tst_pouso_alegre':['Pouso Alegre','Alfenas','Ouro Fino','Andradas']
+  };
+  if(perfil==='supervisor'||['tst_passos','tst_pouso_alegre'].includes(perfil)){
     let q=sb.from('tratativas').select('id,tipo,detalhe,prazo_resposta').eq('respondida',false);
-    if(up.base) q=q.filter('base','ilike',up.base);
+    if(['tst_passos','tst_pouso_alegre'].includes(perfil)) q=q.eq('tipo','velocidade').in('base',TST_BASES[perfil]||[]);
+    else if(up.base) q=q.filter('base','ilike',up.base);
     else q=q.eq('supervisor_id',userId);
     const {data:trats}=await q;
     if(!trats||!trats.length) return;
-    const TIPO={'impedimentos':'Impedimentos','erros':'Erros leitura','meta':'Meta leituras','inicio_tardio':'Início tardio','manual':'Manual'};
+    const TIPO={'impedimentos':'Impedimentos','erros':'Erros leitura','meta':'Meta leituras','inicio_tardio':'Início tardio','manual':'Manual','velocidade':'Excesso de Velocidade'};
     document.getElementById('popup-sup-body').innerHTML=trats.map(t=>{
       const atrasada=new Date(t.prazo_resposta)<hoje;
       const amanha=new Date(t.prazo_resposta).toDateString()===new Date(Date.now()+86400000).toDateString();
