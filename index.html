@@ -388,9 +388,13 @@ async function verificarPopups(up, userId){
     'tst_passos':['Guaxupé','Passos','SSP'],
     'tst_pouso_alegre':['Pouso Alegre','Alfenas','Ouro Fino','Andradas']
   };
+  const NOME_REAL_BASE={'SSP':'São Sebastião Do Paraiso'};
   if(perfil==='supervisor'||['tst_passos','tst_pouso_alegre'].includes(perfil)){
     let q=sb.from('tratativas').select('id,tipo,detalhe,prazo_resposta').eq('respondida',false);
-    if(['tst_passos','tst_pouso_alegre'].includes(perfil)) q=q.eq('tipo','velocidade').in('base',TST_BASES[perfil]||[]);
+    if(['tst_passos','tst_pouso_alegre'].includes(perfil)){
+      const bases=(TST_BASES[perfil]||[]).map(b=>NOME_REAL_BASE[b]||b);
+      q=q.or(`and(tipo.eq.velocidade,base.in.(${bases.join(',')})),supervisor_id.eq.${userId}`);
+    }
     else if(up.base) q=q.filter('base','ilike',up.base);
     else q=q.eq('supervisor_id',userId);
     const {data:trats}=await q;
