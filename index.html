@@ -344,6 +344,11 @@ async function carregarClimaUsuario(nomeCompleto){
   }catch(e){ /* falha silenciosa — sem clima disponível agora */ }
 }
 
+// Normaliza nome de base: remove acentos, espaços extras e diferenças de maiúscula/minúscula
+function normBase(s){
+  return (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
+}
+
 async function carregarIndicadoresVivos(baseUsuario){
   const hoje=new Date();
   const yyyy=hoje.getFullYear(), mm=String(hoje.getMonth()+1).padStart(2,'0');
@@ -361,14 +366,13 @@ async function carregarIndicadoresVivos(baseUsuario){
   // Impedimentos — só responsabilidade GBS, do mês atual, restrito à base do supervisor se houver
   (async()=>{
     try{
-      let q=sb.from('impedimentos').select('*',{count:'exact',head:true}).eq('mes_ref',mesRef01).ilike('responsabilidade','GBS');
-      if(baseUsuario) q=q.ilike('base',baseUsuario);
-      let {count}=await q;
+      let q=sb.from('impedimentos').select('base',{count:'exact'}).eq('mes_ref',mesRef01).ilike('responsabilidade','GBS');
+      let {data,count}=await q;
       if(!count){
-        let q2=sb.from('impedimentos').select('*',{count:'exact',head:true}).eq('mes_ref',mesRefSemDia).ilike('responsabilidade','GBS');
-        if(baseUsuario) q2=q2.ilike('base',baseUsuario);
-        ({count}=await q2);
+        let q2=sb.from('impedimentos').select('base',{count:'exact'}).eq('mes_ref',mesRefSemDia).ilike('responsabilidade','GBS');
+        ({data,count}=await q2);
       }
+      if(baseUsuario) count=(data||[]).filter(r=>normBase(r.base)===normBase(baseUsuario)).length;
       setBadge('impedimentos', count||0, count?'cor-vermelho':null, 'GBS');
     }catch(e){ setBadge('impedimentos', null); }
   })();
@@ -380,12 +384,12 @@ async function carregarIndicadoresVivos(baseUsuario){
       let from=0;
       while(true){
         let q=sb.from('transmissoes')
-          .select('ul,rota_tipo,a_executar,exec_100,exec_30,telemetria')
+          .select('ul,base,rota_tipo,a_executar,exec_100,exec_30,telemetria')
           .eq('mes_ref',mesRef01);
-        if(baseUsuario) q=q.ilike('base',baseUsuario);
         const {data:lote}=await q.range(from,from+999);
         if(!lote||!lote.length) break;
         lote.forEach(r=>{
+          if(baseUsuario && normBase(r.base)!==normBase(baseUsuario)) return;
           if(r.rota_tipo!=='LEITURA') return;
           const pend=(r.a_executar||0)-(r.exec_100||0)-(r.exec_30||0)-(r.telemetria||0);
           if(pend>0) ulsPend.add(r.ul);
@@ -400,9 +404,9 @@ async function carregarIndicadoresVivos(baseUsuario){
   // Releituras pendentes do mês, restrito à base se houver
   (async()=>{
     try{
-      let q=sb.from('releituras').select('*',{count:'exact',head:true}).eq('mes_ref',mesRef01);
-      if(baseUsuario) q=q.ilike('base',baseUsuario);
-      const {count}=await q;
+      let q=sb.from('releituras').select('base').eq('mes_ref',mesRef01);
+      const {data}=await q;
+      const count=baseUsuario?(data||[]).filter(r=>normBase(r.base)===normBase(baseUsuario)).length:(data||[]).length;
       setBadge('transmissoes', count||0, count?'cor-amber':null, 'releituras');
     }catch(e){ setBadge('transmissoes', null); }
   })();
@@ -410,9 +414,9 @@ async function carregarIndicadoresVivos(baseUsuario){
   // Erros de leitura do mês, restrito à base se houver
   (async()=>{
     try{
-      let q=sb.from('erros').select('*',{count:'exact',head:true}).eq('mes_erro',mesRef01);
-      if(baseUsuario) q=q.ilike('base',baseUsuario);
-      const {count}=await q;
+      let q=sb.from('erros').select('base').eq('mes_erro',mesRef01);
+      const {data}=await q;
+      const count=baseUsuario?(data||[]).filter(r=>normBase(r.base)===normBase(baseUsuario)).length:(data||[]).length;
       setBadge('erros', count||0, count?'cor-amber':null, 'erros');
     }catch(e){ setBadge('erros', null); }
   })();
@@ -483,14 +487,14 @@ async function verificarPopups(up, userId){
   };
   const NOME_REAL_BASE={'SSP':'São Sebastião Do Paraiso'};
   if(perfil==='supervisor'||['tst_passos','tst_pouso_alegre'].includes(perfil)){
-    let q=sb.from('tratativas').select('id,tipo,detalhe,prazo_resposta').eq('respondida',false);
+    let q=sb.from('tratativas').select('id,tipo,detalhe,prazo_resposta,base').eq('respondida',false);
     if(['tst_passos','tst_pouso_alegre'].includes(perfil)){
       const bases=(TST_BASES[perfil]||[]).map(b=>NOME_REAL_BASE[b]||b);
       q=q.or(`and(tipo.eq.velocidade,base.in.(${bases.join(',')})),supervisor_id.eq.${userId}`);
     }
-    else if(up.base) q=q.filter('base','ilike',up.base);
-    else q=q.eq('supervisor_id',userId);
-    const {data:trats}=await q;
+    else if(!up.base) q=q.eq('supervisor_id',userId);
+    let {data:trats}=await q;
+    if(perfil==='supervisor'&&up.base) trats=(trats||[]).filter(t=>normBase(t.base)===normBase(up.base));
     if(!trats||!trats.length) return;
     const TIPO={'impedimentos':'Impedimentos','erros':'Erros leitura','meta':'Meta leituras','inicio_tardio':'Início tardio','termino_tardio':'Término tardio','alerta_horario':'Verificar alerta de horário','manual':'Manual','velocidade':'Excesso de Velocidade'};
     document.getElementById('popup-sup-body').innerHTML=trats.map(t=>{
