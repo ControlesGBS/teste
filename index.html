@@ -439,7 +439,8 @@ async function trocarSenhaObrigatoria(){
   btn.disabled=true;btn.textContent='Salvando...';erro.textContent='';
   const {error:erroSenha}=await sb.auth.updateUser({password:novaSenha});
   if(erroSenha){
-    erro.textContent='Erro ao salvar a senha. Tente novamente.';
+    console.error('[troca de senha] Erro do Supabase:', erroSenha);
+    erro.textContent='Erro: '+(erroSenha.message||'tente novamente.');
     btn.disabled=false;btn.textContent='Salvar nova senha';
     return;
   }
