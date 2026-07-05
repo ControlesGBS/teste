@@ -90,6 +90,10 @@ tbody td{padding:9px 10px;border-bottom:0.5px solid #e0eee0;vertical-align:middl
           <label>Senha inicial</label>
           <input type="password" id="n-senha" placeholder="mínimo 6 caracteres">
         </div>
+        <div class="form-group" style="display:flex;align-items:center;gap:6px;padding-top:18px">
+          <input type="checkbox" id="n-trocar-senha" checked style="width:auto">
+          <label style="margin:0;font-size:12px">Exigir troca de senha no primeiro acesso</label>
+        </div>
         <div class="form-group">
           <label>Perfil</label>
           <select id="n-perfil" onchange="atualizarBase()">
@@ -202,6 +206,10 @@ tbody td{padding:9px 10px;border-bottom:0.5px solid #e0eee0;vertical-align:middl
         <label>Nova senha (deixe em branco para não alterar)</label>
         <input type="password" id="e-senha" placeholder="nova senha (opcional)">
       </div>
+      <div class="form-group form-full" style="display:flex;align-items:center;gap:6px">
+        <input type="checkbox" id="e-trocar-senha" style="width:auto">
+        <label style="margin:0;font-size:12px">Exigir troca de senha no próximo login</label>
+      </div>
       <div class="form-group form-full">
         <label>Relatórios permitidos</label>
         <div class="checkboxes" id="e-relatorios">
@@ -284,6 +292,7 @@ async function criarUsuario(){
   const perfil=document.getElementById('n-perfil').value;
   const base=document.getElementById('n-base').value||null;
   const rels=[...document.querySelectorAll('.checkboxes input:checked')].map(c=>c.value);
+  const exigirTroca=document.getElementById('n-trocar-senha').checked;
   const msg=document.getElementById('msg-criar');
   const btn=document.getElementById('btn-criar');
 
@@ -298,10 +307,15 @@ async function criarUsuario(){
     msg.className='msg-criar erro';msg.textContent='Erro: '+resultado.error;btn.disabled=false;return;
   }
 
+  if(exigirTroca){
+    await sb.from('usuarios_portal').update({deve_trocar_senha:true}).eq('email',email);
+  }
+
   msg.className='msg-criar ok';msg.textContent=`✓ Usuário ${nome} criado com sucesso!`;
   document.getElementById('n-nome').value='';
   document.getElementById('n-email').value='';
   document.getElementById('n-senha').value='';
+  document.getElementById('n-trocar-senha').checked=true;
   btn.disabled=false;
   carregarUsuarios();
 }
@@ -314,6 +328,7 @@ function abrirEdicao(u){
   document.getElementById('e-perfil').value=u.perfil;
   document.getElementById('e-base').value=u.base||'';
   document.getElementById('e-senha').value='';
+  document.getElementById('e-trocar-senha').checked=!!u.deve_trocar_senha;
   document.getElementById('msg-edit').textContent='';
   atualizarBaseEdit();
   const rels=u.relatorios||[];
@@ -333,6 +348,7 @@ async function salvarEdicao(){
   const perfil=document.getElementById('e-perfil').value;
   const base=document.getElementById('e-base').value||null;
   const senha=document.getElementById('e-senha').value;
+  const exigirTroca=document.getElementById('e-trocar-senha').checked;
   const rels=[...document.querySelectorAll('#e-relatorios input:checked')].map(c=>c.value);
   const msg=document.getElementById('msg-edit');
   const btn=document.getElementById('btn-salvar');
@@ -354,6 +370,8 @@ async function salvarEdicao(){
     carregarUsuarios();
     return;
   }
+
+  await sb.from('usuarios_portal').update({deve_trocar_senha:exigirTroca}).eq('id',id);
 
   msg.className='msg-edit ok';msg.textContent='✓ Salvo com sucesso!';
   btn.disabled=false;
