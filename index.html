@@ -170,6 +170,24 @@ body{font-family:system-ui,sans-serif;background:#f4f6f4;color:#1a2a1a;min-heigh
   </div>
 </div>
 
+<!-- MODAL TROCA DE SENHA OBRIGATÓRIA -->
+<div class="modal-overlay" id="modal-overlay-senha">
+  <div class="modal" style="position:relative">
+    <div class="modal-title">Defina sua nova senha</div>
+    <div class="modal-sub">Por segurança, você precisa criar uma senha própria antes de continuar.</div>
+    <div class="form-group">
+      <label>Nova senha</label>
+      <input type="password" id="inp-nova-senha" placeholder="mínimo 6 caracteres" onkeydown="if(event.key==='Enter')trocarSenhaObrigatoria()">
+    </div>
+    <div class="form-group">
+      <label>Confirme a nova senha</label>
+      <input type="password" id="inp-confirma-senha" placeholder="repita a senha" onkeydown="if(event.key==='Enter')trocarSenhaObrigatoria()">
+    </div>
+    <button class="btn-login" id="btn-trocar-senha" onclick="trocarSenhaObrigatoria()">Salvar nova senha</button>
+    <div class="login-erro" id="troca-senha-erro"></div>
+  </div>
+</div>
+
 <script>
 const SUPABASE_URL='https://ndwivbhqglpnfyqwjbzu.supabase.co';
 const SUPABASE_KEY='sb_publishable_IhuNziyT5VYrMKRixcPGjA_LAn5ku-7';
@@ -267,6 +285,11 @@ async function carregarUsuario(){
   if(!user){renderCards(null,null);abrirLogin();return;}
   const {data:up}=await sb.from('usuarios_portal').select('*').eq('id',user.id).single();
   if(!up||!up.ativo){await sb.auth.signOut();renderCards(null,null);return;}
+  if(up.deve_trocar_senha){
+    document.getElementById('modal-overlay').classList.remove('vis');
+    document.getElementById('modal-overlay-senha').classList.add('vis');
+    return;
+  }
   usuarioLogado=up;
   document.getElementById('hdr-user').textContent=up.nome;
   document.getElementById('hdr-user').classList.remove('hidden');
@@ -401,6 +424,31 @@ function abrirLogin(){
 }
 function fecharLogin(){document.getElementById('modal-overlay').classList.remove('vis');}
 function fecharLoginFora(e){if(e.target===document.getElementById('modal-overlay'))fecharLogin();}
+
+async function trocarSenhaObrigatoria(){
+  const novaSenha=document.getElementById('inp-nova-senha').value;
+  const confirmaSenha=document.getElementById('inp-confirma-senha').value;
+  const erro=document.getElementById('troca-senha-erro');
+  const btn=document.getElementById('btn-trocar-senha');
+  if(!novaSenha||novaSenha.length<6){erro.textContent='A senha precisa ter no mínimo 6 caracteres.';return;}
+  if(novaSenha!==confirmaSenha){erro.textContent='As senhas não coincidem.';return;}
+  btn.disabled=true;btn.textContent='Salvando...';erro.textContent='';
+  const {error:erroSenha}=await sb.auth.updateUser({password:novaSenha});
+  if(erroSenha){
+    erro.textContent='Erro ao salvar a senha. Tente novamente.';
+    btn.disabled=false;btn.textContent='Salvar nova senha';
+    return;
+  }
+  const {data:{user}}=await sb.auth.getUser();
+  if(user){
+    await sb.from('usuarios_portal').update({deve_trocar_senha:false}).eq('id',user.id);
+  }
+  document.getElementById('modal-overlay-senha').classList.remove('vis');
+  document.getElementById('inp-nova-senha').value='';
+  document.getElementById('inp-confirma-senha').value='';
+  btn.disabled=false;btn.textContent='Salvar nova senha';
+  await carregarUsuario();
+}
 
 async function fazerLogin(){
   const email=document.getElementById('inp-email').value.trim();
