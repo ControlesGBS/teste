@@ -108,7 +108,8 @@ body{font-family:system-ui,sans-serif;background:#f4f6f4;color:#1a2a1a;min-heigh
 <div class="hero" id="controles">
   <div class="hero-tag">Acesso restrito</div>
   <h1 class="hero-title">Controles operacionais</h1>
-  <p class="hero-sub">Os painéis abaixo são de uso interno. Entre com seu login para acessar os controles do seu contrato.</p>
+  <p class="hero-sub" id="saudacao-usuario" style="font-size:22px;font-weight:500;color:#1a2a1a"></p>
+  <div id="clima-usuario" style="display:none;align-items:center;gap:8px;margin-top:6px;font-size:13px;color:#4a7a4a"></div>
 </div>
 
 <div class="cards-section">
@@ -271,9 +272,53 @@ async function carregarUsuario(){
   document.getElementById('hdr-user').classList.remove('hidden');
   document.getElementById('btn-sair').classList.remove('hidden');
   document.getElementById('btn-entrar').classList.add('hidden');
+  aplicarSaudacao(up.nome);
+  carregarClimaUsuario(up.nome);
   renderCards(up.perfil, up.relatorios||[]);
   carregarIndicadoresVivos(up.base||null);
   await verificarPopups(up, user.id);
+}
+
+function aplicarSaudacao(nomeCompleto){
+  const hora=new Date().getHours();
+  const saud=hora<12?'Bom dia':hora<18?'Boa tarde':'Boa noite';
+  const primeiroNome=(nomeCompleto||'').split(' ')[0];
+  document.getElementById('saudacao-usuario').textContent=`${saud}, ${primeiroNome}!`;
+}
+
+const CIDADE_POR_USUARIO={
+  'andressa':{cidade:'Passos/MG',lat:-20.7182,lon:-46.6089},
+  'paulo':{cidade:'Passos/MG',lat:-20.7182,lon:-46.6089},
+  'adriano':{cidade:'São Sebastião do Paraíso/MG',lat:-20.9166,lon:-46.9919},
+  'alan':{cidade:'Pouso Alegre/MG',lat:-22.2299,lon:-45.9364},
+  'ozeias':{cidade:'Pouso Alegre/MG',lat:-22.2299,lon:-45.9364},
+  'jefferson':{cidade:'Alfenas/MG',lat:-21.4295,lon:-45.9470},
+  'lucas':{cidade:'Andradas/MG',lat:-22.0783,lon:-46.5717},
+  'rafael':{cidade:'Ouro Fino/MG',lat:-22.2803,lon:-46.3692},
+  'jose':{cidade:'Guaxupé/MG',lat:-21.3053,lon:-46.7122},
+  'daniel':{cidade:'Divinópolis/MG',lat:-20.1389,lon:-44.8839},
+  'eliezer':{cidade:'Montes Claros/MG',lat:-16.7286,lon:-43.8578},
+};
+const WMO_ICONE={0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌦️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',80:'🌦️',81:'🌧️',82:'⛈️',95:'⛈️',96:'⛈️',99:'⛈️'};
+
+function normalizarNome(s){
+  return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+}
+
+async function carregarClimaUsuario(nomeCompleto){
+  const primeiroNome=normalizarNome((nomeCompleto||'').split(' ')[0]);
+  const info=CIDADE_POR_USUARIO[primeiroNome];
+  const box=document.getElementById('clima-usuario');
+  if(!info) return; // usuário sem cidade cadastrada — não mostra nada
+  try{
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${info.lat}&longitude=${info.lon}&current_weather=true`);
+    const j=await r.json();
+    const cw=j.current_weather;
+    if(!cw) return;
+    const icone=WMO_ICONE[cw.weathercode]||'🌡️';
+    box.style.display='flex';
+    box.innerHTML=`<span style="font-size:16px">${icone}</span><span>${info.cidade} — ${Math.round(cw.temperature)}°C</span>`;
+  }catch(e){ /* falha silenciosa — sem clima disponível agora */ }
 }
 
 async function carregarIndicadoresVivos(baseUsuario){
