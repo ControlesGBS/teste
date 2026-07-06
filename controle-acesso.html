@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle de Acesso — GBS</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f4f6f4;color:#1a2a1a;font-size:13px}
+.hdr{background:#1a4a1a;color:#fff;padding:10px 24px;display:flex;align-items:center;gap:12px}
+.hdr-title{font-size:15px;font-weight:500;color:#c8e8c8;flex:1}
+.hdr-user{font-size:11px;color:#90c090}
+.btn-sair{background:none;border:1px solid #4a7a4a;color:#c8e8c8;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:12px}
+.content{max-width:1000px;margin:0 auto;padding:24px 20px}
+.section{background:#fff;border:0.5px solid #c0dcc0;border-radius:10px;overflow:hidden}
+.section-hdr{background:#1a4a1a;color:#c0e8c0;padding:10px 16px;font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:space-between}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{background:#1a4a1a;color:#c0e8c0;padding:8px 12px;text-align:left;font-size:13px;font-weight:500;white-space:nowrap}
+tbody tr:nth-child(even){background:#f8fbf8}
+tbody td{padding:9px 12px;border-bottom:0.5px solid #e0eee0;vertical-align:middle}
+.badge-perfil{display:inline-block;padding:3px 10px;border-radius:8px;font-size:11px;font-weight:500;background:#eeedfe;color:#3c3489}
+.status-msg{padding:20px;text-align:center;color:#4a7a4a}
+.sem-local{color:#a0a0a0;font-style:italic}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <a href="/controles" title="Início" style="color:#c8e8c8;text-decoration:none;font-size:18px;line-height:1;margin-right:4px">🏠</a>
+  <div class="hdr-title">CONTROLE DE ACESSO</div>
+  <span class="hdr-user" id="hdr-user"></span>
+  <button class="btn-sair" onclick="sair()">Sair</button>
+</div>
+
+<div class="content">
+  <div class="section">
+    <div class="section-hdr">
+      <span>Usuários e últimos acessos</span>
+      <span id="count" style="font-size:11px;color:#90c090"></span>
+    </div>
+    <table>
+      <thead><tr>
+        <th>Nome</th><th>Perfil</th><th>Base</th><th>Último acesso</th><th>Localização</th>
+      </tr></thead>
+      <tbody id="tbody"><tr><td colspan="5" class="status-msg">Carregando...</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL='https://ndwivbhqglpnfyqwjbzu.supabase.co';
+const SUPABASE_KEY='sb_publishable_IhuNziyT5VYrMKRixcPGjA_LAn5ku-7';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+async function sair(){await sb.auth.signOut();location.href='https://gbsservicos.com';}
+
+const PERFIL_LABEL={gestor:'Gestor',gestor1:'Gestor',supervisor_geral:'Supervisor Geral',supervisor:'Supervisor',tst_passos:'TST - Passos',tst_pouso_alegre:'TST - Pouso Alegre',auxiliar:'Auxiliar'};
+
+(async()=>{
+  const {data:{user}}=await sb.auth.getUser();
+  if(!user){location.href='/controles';return;}
+  const {data:up}=await sb.from('usuarios_portal').select('nome,perfil,ativo').eq('id',user.id).single();
+  if(!up||!up.ativo||!['gestor','gestor1','supervisor_geral'].includes(up.perfil)){location.href='/controles';return;}
+  document.getElementById('hdr-user').textContent=up.nome||user.email;
+
+  const {data:usuarios}=await sb.from('usuarios_portal').select('nome,email,perfil,base,ativo,last_login,last_login_local').order('last_login',{ascending:false,nullsFirst:false});
+  renderTabela(usuarios||[]);
+})();
+
+function renderTabela(usuarios){
+  const tbody=document.getElementById('tbody');
+  document.getElementById('count').textContent=`${usuarios.length} usuário(s)`;
+  if(!usuarios.length){
+    tbody.innerHTML='<tr><td colspan="5" class="status-msg">Nenhum usuário encontrado.</td></tr>';
+    return;
+  }
+  tbody.innerHTML=usuarios.map(u=>{
+    const ultimoAcesso=u.last_login
+      ? new Date(u.last_login).toLocaleDateString('pt-BR')+' às '+new Date(u.last_login).toLocaleTimeString('pt-BR').slice(0,5)
+      : '<span class="sem-local">Nunca acessou</span>';
+    const local=u.last_login_local || '<span class="sem-local">—</span>';
+    const opacidade=u.ativo?'':'opacity:.5';
+    return `<tr style="${opacidade}">
+      <td style="font-weight:500">${u.nome||u.email}</td>
+      <td><span class="badge-perfil">${PERFIL_LABEL[u.perfil]||u.perfil}</span></td>
+      <td>${u.base||'Todas'}</td>
+      <td>${ultimoAcesso}</td>
+      <td>${local}</td>
+    </tr>`;
+  }).join('');
+}
+</script>
+<script src="/controles/auto-logout.js"></script>
+</body>
+</html>
