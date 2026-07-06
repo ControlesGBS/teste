@@ -23,6 +23,13 @@ body{font-family:system-ui,sans-serif;background:#f4f6f4;color:#1a2a1a;min-heigh
 .hdr-user{font-size:12px;color:#90c090}
 /* HERO */
 .hero{padding:48px 32px 32px;max-width:900px}
+
+.kpis-resumo{max-width:1100px;margin:0 32px 24px;background:#fff;border:0.5px solid #dce8dc;border-radius:12px;padding:18px 24px;display:flex;flex-wrap:wrap;gap:10px 28px}
+.kpi-resumo-item{display:flex;align-items:center;gap:12px;flex:1;min-width:150px}
+.kpi-resumo-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.kpi-resumo-valor{font-size:22px;font-weight:600;color:#1a2a1a;line-height:1.1}
+.kpi-resumo-label{font-size:11px;color:#6a8a6a;margin-top:1px;white-space:nowrap}
+.rodape-portal{max-width:1100px;margin:32px auto 24px;padding:16px 32px 0;border-top:0.5px solid #e0eee0;text-align:center;font-size:11px;color:#9ab09a}
 .hero-tag{font-size:11px;font-weight:500;color:#2d7a2d;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
 .hero-title{font-size:32px;font-weight:500;color:#1a2a1a;margin-bottom:12px;line-height:1.2}
 .hero-sub{font-size:15px;color:#4a7a4a;line-height:1.6;max-width:560px}
@@ -105,11 +112,24 @@ body{font-family:system-ui,sans-serif;background:#f4f6f4;color:#1a2a1a;min-heigh
   </div>
 </div>
 
-<div class="hero" id="controles">
+<div class="hero" id="controles" style="position:relative">
   <div class="hero-tag">Acesso restrito</div>
   <h1 class="hero-title">Controles operacionais</h1>
   <p class="hero-sub" id="saudacao-usuario" style="font-size:22px;font-weight:500;color:#1a2a1a"></p>
   <div id="clima-usuario" style="display:none;align-items:center;gap:8px;margin-top:6px;font-size:13px;color:#4a7a4a"></div>
+  <div id="ultimo-acesso-box" style="display:none;position:absolute;top:0;right:0;background:#fff;border:0.5px solid #c0dcc0;border-radius:10px;padding:10px 16px;font-size:12px;color:#4a7a4a;align-items:center;gap:8px">
+    <span style="font-size:16px">🕐</span>
+    <span>Último acesso<br><strong id="ultimo-acesso-valor" style="color:#1a2a1a;font-size:13px">—</strong></span>
+  </div>
+</div>
+
+<div class="kpis-resumo" id="kpis-resumo" style="display:none">
+  <div class="kpi-resumo-item"><span class="kpi-resumo-icon" style="background:#eaf3de">📋</span><div><div class="kpi-resumo-valor" id="kpi-alerta-horario">—</div><div class="kpi-resumo-label" id="kpi-alerta-horario-label">Leituristas com Alerta Crítico</div></div></div>
+  <div class="kpi-resumo-item"><span class="kpi-resumo-icon" style="background:#fdf0dc">📌</span><div><div class="kpi-resumo-valor" id="kpi-uls-pendentes">—</div><div class="kpi-resumo-label">UL's com Leituras Pendentes</div></div></div>
+  <div class="kpi-resumo-item"><span class="kpi-resumo-icon" style="background:#fdf0dc">📌</span><div><div class="kpi-resumo-valor" id="kpi-releitura-pendente">—</div><div class="kpi-resumo-label">instalações com Releitura Pendente</div></div></div>
+  <div class="kpi-resumo-item"><span class="kpi-resumo-icon" style="background:#eeedfe">🚧</span><div><div class="kpi-resumo-valor" id="kpi-pct-impedimentos">—</div><div class="kpi-resumo-label" id="kpi-pct-impedimentos-label">bases fora da meta</div></div></div>
+  <div class="kpi-resumo-item"><span class="kpi-resumo-icon" style="background:#fcebeb">⚠️</span><div><div class="kpi-resumo-valor" id="kpi-erros">—</div><div class="kpi-resumo-label" id="kpi-erros-label">Sem erros</div></div></div>
+  <div class="kpi-resumo-item"><span class="kpi-resumo-icon" style="background:#e6f1fb">🚗</span><div><div class="kpi-resumo-valor" id="kpi-velocidade">—</div><div class="kpi-resumo-label">infrações no mês</div></div></div>
 </div>
 
 <div class="cards-section">
@@ -118,6 +138,8 @@ body{font-family:system-ui,sans-serif;background:#f4f6f4;color:#1a2a1a;min-heigh
     <!-- preenchido via JS -->
   </div>
 </div>
+
+<div class="rodape-portal">GBS Serviços © 2026 &nbsp;·&nbsp; Versão 2.4.1</div>
 
 <!-- POPUP SUPERVISOR -->
 <div class="popup-overlay" id="popup-sup">
@@ -297,9 +319,20 @@ async function carregarUsuario(){
   document.getElementById('btn-entrar').classList.add('hidden');
   aplicarSaudacao(up.nome);
   carregarClimaUsuario(up.nome);
+  exibirUltimoAcesso(up.last_login);
   renderCards(up.perfil, up.relatorios||[]);
   carregarIndicadoresVivos(up.base||null);
+  carregarKpisResumo(up.base||null);
   await verificarPopups(up, user.id);
+}
+
+function exibirUltimoAcesso(lastLogin){
+  const box=document.getElementById('ultimo-acesso-box');
+  const val=document.getElementById('ultimo-acesso-valor');
+  if(!lastLogin){ box.style.display='none'; return; }
+  const d=new Date(lastLogin);
+  val.textContent=`${d.toLocaleDateString('pt-BR')} às ${d.toLocaleTimeString('pt-BR').slice(0,5)}`;
+  box.style.display='flex';
 }
 
 function aplicarSaudacao(nomeCompleto){
@@ -347,6 +380,147 @@ async function carregarClimaUsuario(nomeCompleto){
 // Normaliza nome de base: remove acentos, espaços extras e diferenças de maiúscula/minúscula
 function normBase(s){
   return (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
+}
+
+async function carregarKpisResumo(baseUsuario){
+  const hoje=new Date();
+  const yyyy=hoje.getFullYear(), mm=String(hoje.getMonth()+1).padStart(2,'0');
+  const mesRef01=`${yyyy}-${mm}-01`;
+  const di=`${yyyy}-${mm}-01`;
+  const df=`${yyyy}-${mm}-${String(new Date(yyyy,parseInt(mm),0).getDate()).padStart(2,'0')}`;
+  document.getElementById('kpis-resumo').style.display='flex';
+
+  // 1) Alerta de Horário — leituristas com status Crítico ou Muito Crítico no mês
+  (async()=>{
+    try{
+      let qMat=sb.from('matriculas').select('matricula,base').eq('situacao','Ativo');
+      if(baseUsuario) qMat=qMat.ilike('base',baseUsuario);
+      const {data:mats}=await qMat;
+      const matsIds=(mats||[]).map(m=>m.matricula);
+      if(!matsIds.length){ document.getElementById('kpi-alerta-horario').textContent='0'; return; }
+
+      let jornada=[], from=0;
+      while(true){
+        const {data:lote}=await sb.from('jornada').select('matricula,hora_inicial,hora_final,qtd_leituras')
+          .in('matricula',matsIds).gte('data',di).lte('data',df).range(from,from+999);
+        if(!lote||!lote.length) break;
+        jornada=jornada.concat(lote);
+        if(lote.length<1000) break;
+        from+=1000;
+      }
+      const acum={};
+      const toMin=h=>{ if(!h||!h.includes(':')) return null; const[hh,mi]=h.split(':').map(Number); return hh*60+mi; };
+      jornada.forEach(r=>{
+        if((r.qtd_leituras||0)<5) return;
+        const mat=r.matricula;
+        if(!acum[mat]) acum[mat]={cedoMin:null,tardeMin:null};
+        const hi=toMin(r.hora_inicial), hf=toMin(r.hora_final);
+        if(hi!=null && (acum[mat].cedoMin===null||hi<acum[mat].cedoMin)) acum[mat].cedoMin=hi;
+        if(hf!=null && (acum[mat].tardeMin===null||hf>acum[mat].tardeMin)) acum[mat].tardeMin=hf;
+      });
+      let count=0;
+      Object.values(acum).forEach(v=>{
+        let nivel=0;
+        if(v.cedoMin!=null){
+          if(v.cedoMin<330) nivel=Math.max(nivel,3);
+          else if(v.cedoMin<360) nivel=Math.max(nivel,2);
+          else if(v.cedoMin<420) nivel=Math.max(nivel,1);
+        }
+        if(v.tardeMin!=null){
+          if(v.tardeMin>1170) nivel=Math.max(nivel,3);
+          else if(v.tardeMin>1110) nivel=Math.max(nivel,2);
+          else if(v.tardeMin>1080) nivel=Math.max(nivel,1);
+        }
+        if(nivel>=2) count++;
+      });
+      document.getElementById('kpi-alerta-horario').textContent=count;
+    }catch(e){ document.getElementById('kpi-alerta-horario').textContent='—'; }
+  })();
+
+  // 2) UL's com leituras pendentes (mesma lógica do badge de transmissões)
+  (async()=>{
+    try{
+      const ulsPend=new Set();
+      let from=0;
+      while(true){
+        const {data:lote}=await sb.from('transmissoes')
+          .select('ul,base,rota_tipo,a_executar,exec_100,exec_30,telemetria')
+          .eq('mes_ref',mesRef01).range(from,from+999);
+        if(!lote||!lote.length) break;
+        lote.forEach(r=>{
+          if(baseUsuario && normBase(r.base)!==normBase(baseUsuario)) return;
+          if(r.rota_tipo!=='LEITURA') return;
+          const pend=(r.a_executar||0)-(r.exec_100||0)-(r.exec_30||0)-(r.telemetria||0);
+          if(pend>0) ulsPend.add(r.ul);
+        });
+        if(lote.length<1000) break;
+        from+=1000;
+      }
+      document.getElementById('kpi-uls-pendentes').textContent=ulsPend.size;
+    }catch(e){ document.getElementById('kpi-uls-pendentes').textContent='—'; }
+  })();
+
+  // 3) Instalações com releitura pendente
+  (async()=>{
+    try{
+      const {data}=await sb.from('releituras').select('instalacao,base').eq('mes_ref',mesRef01);
+      const filt=baseUsuario?(data||[]).filter(r=>normBase(r.base)===normBase(baseUsuario)):(data||[]);
+      const distintas=new Set(filt.map(r=>r.instalacao).filter(Boolean));
+      document.getElementById('kpi-releitura-pendente').textContent=distintas.size;
+    }catch(e){ document.getElementById('kpi-releitura-pendente').textContent='—'; }
+  })();
+
+  // 4) % Impedimentos — bases fora da meta (0,30%)
+  (async()=>{
+    try{
+      const META=0.30;
+      const {data:impGbs}=await sb.from('impedimentos').select('base').eq('mes_ref',mesRef01).ilike('responsabilidade','GBS');
+      const {data:jorTodos}=await sb.from('jornada').select('matricula,qtd_leituras').gte('data',di).lte('data',df);
+      const {data:matsTodas}=await sb.from('matriculas').select('matricula,base').eq('situacao','Ativo');
+      const baseDoMat={}; (matsTodas||[]).forEach(m=>baseDoMat[m.matricula]=m.base);
+      const leitPorBase={};
+      (jorTodos||[]).forEach(r=>{
+        const b=baseDoMat[r.matricula]; if(!b) return;
+        leitPorBase[normBase(b)]=(leitPorBase[normBase(b)]||0)+(r.qtd_leituras||0);
+      });
+      const impPorBase={};
+      (impGbs||[]).forEach(r=>{ const k=normBase(r.base); impPorBase[k]=(impPorBase[k]||0)+1; });
+      let bases=Object.keys(leitPorBase);
+      if(baseUsuario) bases=bases.filter(b=>b===normBase(baseUsuario));
+      let foraMeta=0;
+      bases.forEach(b=>{
+        const pct=((impPorBase[b]||0)/(leitPorBase[b]||1))*100;
+        if(pct>META) foraMeta++;
+      });
+      document.getElementById('kpi-pct-impedimentos').textContent=foraMeta;
+    }catch(e){ document.getElementById('kpi-pct-impedimentos').textContent='—'; }
+  })();
+
+  // 5) Erros de leitura do mês
+  (async()=>{
+    try{
+      const {data}=await sb.from('erros').select('base').eq('mes_erro',mesRef01);
+      const count=baseUsuario?(data||[]).filter(r=>normBase(r.base)===normBase(baseUsuario)).length:(data||[]).length;
+      document.getElementById('kpi-erros').textContent=count;
+      document.getElementById('kpi-erros-label').textContent=count?`erros no mês`:'Sem erros';
+    }catch(e){ document.getElementById('kpi-erros').textContent='—'; }
+  })();
+
+  // 6) Velocidade — infrações no mês
+  (async()=>{
+    try{
+      let all=[],from=0;
+      while(true){
+        const {data}=await sb.from('infracoes').select('base,data').gte('data',di).lte('data',df).range(from,from+999);
+        if(!data||!data.length) break;
+        all=all.concat(data);
+        if(data.length<1000) break;
+        from+=1000;
+      }
+      const count=baseUsuario?all.filter(r=>normBase(r.base)===normBase(baseUsuario)).length:all.length;
+      document.getElementById('kpi-velocidade').textContent=count;
+    }catch(e){ document.getElementById('kpi-velocidade').textContent='—'; }
+  })();
 }
 
 async function carregarIndicadoresVivos(baseUsuario){
