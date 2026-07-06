@@ -273,6 +273,18 @@ function renderCards(perfil,relatorios){
         <div class="card-desc">Criar logins, definir perfis, bases e permissões de acesso.</div>
       </a>`;
   }
+
+  // Controle de Acesso — visível pra gestor/gestor1/supervisor_geral, só leitura
+  if(['gestor','gestor1','supervisor_geral'].includes(perfil)){
+    grid.innerHTML+=`
+      <a class="card" href="controle-acesso.html" style="border-left-color:#8fa8c0;background:#f4f7fb">
+        <div class="card-top">
+          <div class="card-icon" style="background:#e6f1fb">🕐</div>
+        </div>
+        <div class="card-title">Controle de Acesso</div>
+        <div class="card-desc">Veja o último acesso e a localização de cada usuário.</div>
+      </a>`;
+  }
 }
 
 async function carregarUsuario(){
@@ -425,7 +437,12 @@ async function fazerLogin(){
   }
   const {data:{user}}=await sb.auth.getUser();
   if(user){
-    await sb.from('usuarios_portal').update({last_login:new Date().toISOString()}).eq('id',user.id);
+    let localAcesso=null;
+    try{
+      const geo=await fetch('https://ipwho.is/').then(r=>r.json());
+      if(geo && geo.success!==false) localAcesso=[geo.city,geo.region,geo.country].filter(Boolean).join(', ');
+    }catch(e){}
+    await sb.from('usuarios_portal').update({last_login:new Date().toISOString(), last_login_local:localAcesso}).eq('id',user.id);
   }
   if(window.gbsMarcarLogin) window.gbsMarcarLogin();
   fecharLogin();
