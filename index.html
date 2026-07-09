@@ -43,6 +43,12 @@ body{font-family:system-ui,sans-serif;background:#f4f6f4;color:#1a2a1a;min-heigh
 .card-badge.cor-vermelho{color:#791f1f;background:#fcebeb}
 .card-badge.cor-amber{color:#633806;background:#faeeda}
 .card-badge.carregando{color:#90a890;background:#f0f5f0}
+.novidade-tag{position:absolute;top:-16px;right:12px;background:#2d7a2d;color:#fff;font-size:11px;font-weight:700;padding:5px 11px;border-radius:20px;box-shadow:0 3px 8px rgba(26,74,26,.3);display:flex;align-items:center;gap:4px;white-space:nowrap;z-index:5;animation:novidade-entra .35s ease,novidade-flutua 1.3s ease-in-out .35s infinite;transition:opacity .6s ease,transform .6s ease}
+.novidade-tag.saindo{opacity:0;transform:translateY(-6px)}
+.novidade-tag .seta{display:inline-block;animation:seta-aponta 1s ease-in-out infinite}
+@keyframes novidade-entra{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
+@keyframes novidade-flutua{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes seta-aponta{0%,100%{transform:translateX(0)}50%{transform:translateX(3px)}}
 /* GESTOR BANNER */
 .gestor-banner{margin:0 32px 40px;max-width:1036px;background:#1a4a1a;border-radius:12px;padding:20px 28px;display:flex;align-items:center;justify-content:space-between;gap:20px}
 .gestor-banner-left{display:flex;align-items:center;gap:14px}
@@ -200,7 +206,7 @@ const MODULOS=[
   {id:'fotos',       titulo:'Controle de Fotos',       desc:'Solicitações e realizações de fotos por UL e leiturista.',         icon:'📷', url:'/controles/fotos/'},
   {id:'erros',       titulo:'Erros de Leitura',        desc:'Instalações com erro de leitura por mês, base e leiturista.',      icon:'⚠️', url:'/controles/erros/'},
   {id:'velocidade',  titulo:'Gestão de Velocidade',     desc:'Infrações de excesso de velocidade por condutor e base.',          icon:'🚗', url:'/controles/velocidade/'},
-  {id:'km',          titulo:'Registros de KM Rodado',   desc:'KM rodado por veículo, com filtro de base, data e horário.',       icon:'🛣️', url:'/controles/km/'},
+  {id:'km',          titulo:'Registros de KM Rodado',   desc:'KM rodado por veículo, com filtro de base, data e horário.',       icon:'🛣️', url:'/controles/km/', novo:true},
 ];
 
 let usuarioLogado=null;
@@ -230,6 +236,7 @@ function renderCards(perfil,relatorios){
     if(!temAcesso) return '';
     return `
       <a class="card" href="${m.url}">
+        ${m.novo?`<span class="novidade-tag" id="novidade-${m.id}"><span class="seta">👉</span>Novidade!</span>`:''}
         <div class="card-top">
           <div class="card-icon">${m.icon}</div>
           ${m.badges?`<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">${m.badges.map(b=>`<span class="card-badge carregando" id="badge-${b}">···</span>`).join('')}</div>`:''}
@@ -238,6 +245,16 @@ function renderCards(perfil,relatorios){
         <div class="card-desc">${m.desc}</div>
       </a>`;
   }).join('');
+
+  // Some sozinha depois de uns segundos — só chama atenção pro lançamento, não fica pra sempre
+  MODULOS.filter(m=>m.novo && permitidos.includes(m.id)).forEach(m=>{
+    setTimeout(()=>{
+      const tag=document.getElementById('novidade-'+m.id);
+      if(!tag) return;
+      tag.classList.add('saindo');
+      setTimeout(()=>tag.remove(),600);
+    },10000);
+  });
 
   // card minhas tratativas para supervisores e TSTs
   if(['supervisor','tst_passos','tst_pouso_alegre'].includes(perfil)){
