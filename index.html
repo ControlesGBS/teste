@@ -293,6 +293,18 @@ function renderCards(perfil,relatorios){
       </a>`;
   }
 
+  // Gerenciar Usuários Leituristas — exclusivo, só aparece pra uma conta específica
+  if(usuarioLogado?.email==='eliezer@gbsservicos.com'){
+    grid.innerHTML+=`
+      <a class="card" href="/controles/leiturista/gerenciar.html" style="border-left-color:#025e37;background:#f2faf6">
+        <div class="card-top">
+          <div class="card-icon" style="background:#dcf3e8">🪪</div>
+        </div>
+        <div class="card-title">Gerenciar Usuários Leituristas</div>
+        <div class="card-desc">Criar acesso (matrícula + PIN) e ver quem já tem login no painel do leiturista.</div>
+      </a>`;
+  }
+
   // Controle de Acesso — visível pra gestor/gestor1/supervisor_geral, só leitura
   if(['gestor','gestor1','supervisor_geral'].includes(perfil)){
     grid.innerHTML+=`
