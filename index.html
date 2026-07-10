@@ -208,6 +208,7 @@ const MODULOS=[
   {id:'velocidade',  titulo:'Gestão de Velocidade',     desc:'Infrações de excesso de velocidade por condutor e base.',          icon:'🚗', url:'/controles/velocidade/'},
   {id:'km',          titulo:'Registros de KM Rodado',   desc:'KM rodado por veículo, com filtro de base, data e horário.',       icon:'🛣️', url:'/controles/km/'},
   {id:'ranking',     titulo:'Ranking Geral do Leiturista', desc:'Score consolidado por leiturista: erros, impedimentos, fotos e produtividade.', icon:'🏆', url:'/controles/ranking/', novo:true},
+  {id:'leiturista-admin', titulo:'Gerenciar Usuários Leituristas', desc:'Criar acesso (matrícula + PIN) e definir metas/valores dos níveis do painel do leiturista.', icon:'🪪', url:'/controles/leiturista/gerenciar.html'},
 ];
 
 let usuarioLogado=null;
@@ -293,8 +294,10 @@ function renderCards(perfil,relatorios){
       </a>`;
   }
 
-  // Gerenciar Usuários Leituristas — exclusivo, só aparece pra uma conta específica
-  if(usuarioLogado?.email==='eliezer@gbsservicos.com'){
+  // Gerenciar Usuários Leituristas — sempre garantido pra essa conta, mesmo que a
+  // permissão "leiturista-admin" ainda não esteja marcada nela; se já estiver marcada
+  // (ou marcada em outra conta), o card normal do MODULOS acima já cobre, sem duplicar.
+  if(usuarioLogado?.email==='eliezer@gbsservicos.com' && !permitidos.includes('leiturista-admin')){
     grid.innerHTML+=`
       <a class="card" href="/controles/leiturista/gerenciar.html" style="border-left-color:#025e37;background:#f2faf6">
         <div class="card-top">
