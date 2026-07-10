@@ -319,6 +319,26 @@ function renderCards(perfil,relatorios){
         <div class="card-desc">Veja o último acesso e a localização de cada usuário.</div>
       </a>`;
   }
+
+  // Locação de Motos — mesmo grupo de gestores, sem passar pelo checkbox de relatórios
+  // (é uma ferramenta de gestão, não um relatório operacional)
+  if(['gestor','gestor1','supervisor_geral'].includes(perfil)){
+    grid.innerHTML+=`
+      <a class="card" href="/controles/locacao_motos/" style="border-left-color:#c07a2d;background:#fbf5ee">
+        <span class="novidade-tag" id="novidade-locacao-motos"><span class="seta">👉</span>Novidade!</span>
+        <div class="card-top">
+          <div class="card-icon" style="background:#f5e6d0">🏍️</div>
+        </div>
+        <div class="card-title">Locação de Motos</div>
+        <div class="card-desc">Calcula e controla o pagamento de locação da moto dos leituristas, por km urbano/rural.</div>
+      </a>`;
+    setTimeout(()=>{
+      const tag=document.getElementById('novidade-locacao-motos');
+      if(!tag) return;
+      tag.classList.add('saindo');
+      setTimeout(()=>tag.remove(),600);
+    },10000);
+  }
 }
 
 async function carregarUsuario(){
