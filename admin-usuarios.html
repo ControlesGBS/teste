@@ -44,6 +44,7 @@ tbody td{padding:9px 10px;border-bottom:0.5px solid #e0eee0;vertical-align:middl
 .bp-gestor1{background:#e0d4fa;color:#5b21a8}
 .bp-supgeral{background:#fde8e8;color:#9b1c1c}
 .bp-tecseg{background:#eaf3de;color:#27500a}
+.bp-analista{background:#e0f2f1;color:#00695c}
 .badge-ativo{display:inline-block;padding:3px 10px;border-radius:8px;font-size:14px;font-weight:500}
 .ba-sim{background:#eaf3de;color:#27500a}
 .ba-nao{background:#fcebeb;color:#791f1f}
@@ -99,6 +100,7 @@ tbody td{padding:9px 10px;border-bottom:0.5px solid #e0eee0;vertical-align:middl
           <select id="n-perfil" onchange="atualizarBase()">
             <option value="supervisor">Supervisor</option>
             <option value="auxiliar">Auxiliar</option>
+            <option value="analista">Analista</option>
             <option value="gestor">Gestor</option>
             <option value="gestor1">Gestor1</option>
             <option value="supervisor_geral">Supervisor Geral</option>
@@ -190,6 +192,7 @@ tbody td{padding:9px 10px;border-bottom:0.5px solid #e0eee0;vertical-align:middl
         <select id="e-perfil" onchange="atualizarBaseEdit()">
           <option value="supervisor">Supervisor</option>
           <option value="auxiliar">Auxiliar</option>
+          <option value="analista">Analista</option>
           <option value="gestor">Gestor</option>
           <option value="gestor1">Gestor1</option>
           <option value="supervisor_geral">Supervisor Geral</option>
@@ -313,14 +316,18 @@ async function dispararBoasVindas(){
 async function carregarUsuarios(){
   const {data}=await sb.from('usuarios_portal').select('*').order('nome');
   document.getElementById('count-users').textContent=`${(data||[]).length} usuário(s)`;
-  const LABEL={gestor:'Gestor',supervisor:'Supervisor',auxiliar:'Auxiliar',gestor1:'Gestor1',supervisor_geral:'Supervisor Geral',tst_passos:'TST - Passos',tst_pouso_alegre:'TST - Pouso Alegre'};
-  const CLASSE={gestor:'bp-gestor',supervisor:'bp-supervisor',auxiliar:'bp-auxiliar',gestor1:'bp-gestor1',supervisor_geral:'bp-supgeral',tst_passos:'bp-tecseg',tst_pouso_alegre:'bp-tecseg'};
+  const LABEL={gestor:'Gestor',supervisor:'Supervisor',auxiliar:'Auxiliar',analista:'Analista',gestor1:'Gestor1',supervisor_geral:'Supervisor Geral',tst_passos:'TST - Passos',tst_pouso_alegre:'TST - Pouso Alegre'};
+  const CLASSE={gestor:'bp-gestor',supervisor:'bp-supervisor',auxiliar:'bp-auxiliar',analista:'bp-analista',gestor1:'bp-gestor1',supervisor_geral:'bp-supgeral',tst_passos:'bp-tecseg',tst_pouso_alegre:'bp-tecseg'};
+  // tst_passos/tst_pouso_alegre não usam a coluna "base" — a restrição deles
+  // é por essa lista fixa, replicada dos módulos (km, jornada, etc). Mostrar
+  // "Todas" pra eles aqui seria enganoso, já que o acesso é restrito mesmo.
+  const TST_BASES={tst_passos:['Guaxupé','Passos','SSP'],tst_pouso_alegre:['Pouso Alegre','Alfenas','Ouro Fino','Andradas']};
   document.getElementById('tbody-users').innerHTML=(data||[]).map(u=>`
     <tr>
       <td><strong>${u.nome}</strong></td>
       <td style="color:#4a7a4a">${u.email}</td>
       <td><span class="badge-perfil ${CLASSE[u.perfil]||''}">${LABEL[u.perfil]||u.perfil}</span></td>
-      <td>${u.base||'Todas'}</td>
+      <td>${u.base||(TST_BASES[u.perfil]?TST_BASES[u.perfil].join(', '):'Todas')}</td>
       <td style="font-size:14px;color:#4a7a4a">${(u.relatorios||[]).join(', ')||'—'}</td>
       <td><span class="badge-ativo ${u.ativo?'ba-sim':'ba-nao'}">${u.ativo?'Ativo':'Inativo'}</span></td>
       <td style="font-size:14px;color:#4a7a4a;white-space:nowrap">${u.last_login?new Date(u.last_login).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}):'Nunca acessou'}</td>
