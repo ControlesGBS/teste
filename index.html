@@ -78,14 +78,14 @@ body{font-family:system-ui,sans-serif;background:#f4f6f4;color:#1a2a1a;min-heigh
 /* POPUP */
 .popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity .2s}
 .popup-overlay.vis{opacity:1;pointer-events:all}
-.popup{background:#fff;border-radius:12px;width:560px;max-width:95vw;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.15)}
-.popup-hdr{padding:22px 24px 16px}
+.popup{background:#fff;border-radius:12px;width:560px;max-width:95vw;max-height:85vh;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.15);display:flex;flex-direction:column}
+.popup-hdr{padding:22px 24px 16px;flex-shrink:0}
 .popup-icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px}
 .popup-icon.warn{background:#faeeda;color:#854f0b}
 .popup-icon.info{background:#e6f1fb;color:#0c447c}
 .popup-title{font-size:23px;font-weight:500;color:#1a2a1a;margin-bottom:6px}
 .popup-sub{font-size:17px;color:#4a7a4a}
-.popup-body{padding:0 24px 16px}
+.popup-body{padding:0 24px 16px;overflow-y:auto;flex:1;min-height:0}
 .popup-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid #e0eee0;font-size:17px}
 .popup-item:last-child{border-bottom:none}
 .popup-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px}
